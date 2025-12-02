@@ -1,39 +1,37 @@
 from django.db import models
 from django.utils import timezone
 
-# Model for teachers
-class Teacher(models.Model):
-    teacher_id = models.AutoField(primary_key=True)
+# Abstract base model for common person fields
+class Person(models.Model):
     full_name = models.CharField(max_length=100)
     dob = models.DateField(verbose_name="Date of Birth")
     phone_number = models.CharField(max_length=15, verbose_name="Phone Number")
     email = models.EmailField(unique=True)
     address = models.CharField(max_length=255, verbose_name="Address")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+# Model for teachers
+class Teacher(Person):
+    teacher_id = models.AutoField(primary_key=True)
     qualification = models.CharField(max_length=100, verbose_name="Qualification")
 
     def __str__(self):
         return f"{self.full_name} ({self.teacher_id})"
 
 # Model for students
-class Student(models.Model):
+class Student(Person):
     student_id = models.AutoField(primary_key=True)
-    full_name = models.CharField(max_length=100)
-    dob = models.DateField(verbose_name="Date of Birth")
-    phone_number = models.CharField(max_length=15, verbose_name="Phone Number")
-    email = models.EmailField(unique=True)
-    address = models.CharField(max_length=255, verbose_name="Address")
 
     def __str__(self):
         return f"{self.full_name} ({self.student_id})"
     
 # Model for Staff
-class Staff(models.Model):
+class Staff(Person):
     staff_id = models.AutoField(primary_key=True, verbose_name="Staff ID")
-    full_name = models.CharField(max_length=100)
-    dob = models.DateField(verbose_name="Date of Birth")
-    phone_number = models.CharField(max_length=15, verbose_name="Phone Number")
-    email = models.EmailField(unique=True)
-    address = models.CharField(max_length=255, verbose_name="Address")
     position = models.CharField(max_length=100, verbose_name="Position")
 
     def __str__(self):
@@ -44,6 +42,8 @@ class ClassType(models.Model):
     type_id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=10, unique=True, verbose_name="Class Type Code")
     description = models.TextField(verbose_name="Description")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.code
@@ -59,6 +59,12 @@ class Clazz(models.Model):
     end_date = models.DateField(verbose_name="End Date")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Price") 
     room = models.CharField(max_length=50, verbose_name="Room")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='class_images/', default='class_images/default_class.png', verbose_name="Class Image")
+    
+    class Meta:
+        verbose_name_plural = "Classes"
 
     def __str__(self):
         return f"{self.class_name} ({self.class_id})"
@@ -75,9 +81,13 @@ class Enrollment(models.Model):
     minitest4 = models.FloatField(null=True, blank=True, verbose_name="Mini Test 4 Score")
     midterm = models.FloatField(null=True, blank=True, verbose_name="Midterm Score")
     final_test = models.FloatField(null=True, blank=True, verbose_name="Final Test Score")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta: 
         unique_together = ('student', 'clazz')
+        verbose_name_plural = "Enrollments"
+        
     def __str__(self):
         return f"{self.student.full_name} enrolled in {self.clazz.class_name}"
     
@@ -88,6 +98,11 @@ class Schedule(models.Model):
     day_of_week = models.CharField(max_length=50, help_text="e.g., 'Monday, Wednesday, Friday'", verbose_name="Day of the Week")
     start_time = models.TimeField()
     end_time = models.TimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Schedules"
 
     def __str__(self):
         return f"Schedule for {self.clazz.class_name}"
@@ -98,6 +113,11 @@ class Attendance(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name="attendances", verbose_name="Enrollment")
     date = models.DateField(verbose_name="Date")
     status = models.CharField(max_length=20, choices=[('Present', 'Present'), ('Absent', 'Absent'), ('Excused', 'Excused')], verbose_name="Status")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Attendance"
 
     def __str__(self):
         return f"{self.enrollment.student.full_name} - {self.date} : {self.status}"
@@ -110,6 +130,11 @@ class Feedback(models.Model):
     clazz = models.ForeignKey(Clazz, on_delete=models.CASCADE, related_name="feedbacks", verbose_name="Class")
     teacher_rate = models.DecimalField(max_digits=3, decimal_places=2, verbose_name="Teacher Rating", help_text="Rating from 1-10")
     class_rate = models.DecimalField(max_digits=3, decimal_places=2, verbose_name="Class Rating", help_text="Rating from 1-10")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Feedback"
 
     def __str__(self):
         return f"Feedback by {self.student.full_name} for {self.teacher.full_name} in {self.clazz.class_name}"
