@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Abstract base model for common person fields
 class Person(models.Model):
@@ -24,6 +25,7 @@ class Teacher(Person):
 
 # Model for students
 class Student(Person):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     student_id = models.AutoField(primary_key=True)
 
     def __str__(self):
@@ -64,6 +66,7 @@ class Clazz(models.Model):
     image = models.ImageField(upload_to='class_images/', default='class_images/default_class.png', verbose_name="Class Image")
     
     class Meta:
+        verbose_name = "Class"
         verbose_name_plural = "Classes"
 
     def __str__(self):
@@ -86,6 +89,7 @@ class Enrollment(models.Model):
 
     class Meta: 
         unique_together = ('student', 'clazz')
+        verbose_name = "Enrollment"
         verbose_name_plural = "Enrollments"
         
     def __str__(self):
@@ -102,6 +106,7 @@ class Schedule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name = "Schedule"
         verbose_name_plural = "Schedules"
 
     def __str__(self):
@@ -117,6 +122,7 @@ class Attendance(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name = "Attendance"
         verbose_name_plural = "Attendance"
 
     def __str__(self):
@@ -134,6 +140,7 @@ class Feedback(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name = "Feedback"
         verbose_name_plural = "Feedback"
 
     def __str__(self):

@@ -1,57 +1,189 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+
+:root {
+    --primary-color: #2563eb; /* Vibrant Blue */
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b; /* Slate 500 */
+    --background-color: #f8fafc; /* Slate 50 */
+    --text-color: #1e293b; /* Slate 800 */
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --border-color: #e2e8f0;
+}
+
 /* General Body Styles */
 body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
-    background-color: #f4f7f6;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary-hover);
 }
 
 /* Navbar Styles */
 .navbar-custom {
-    background-color: #ffffff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--white);
+    border-bottom: 1px solid var(--border-color);
     padding: 1rem 0;
+    box-shadow: none; /* Remove shadow for cleaner look */
 }
 
 .navbar-custom .navbar-brand {
     font-weight: 700;
-    color: #333;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
 }
 
 .navbar-custom .nav-link {
-    color: #555;
-    margin: 0 10px;
-    transition: color 0.3s;
+    color: var(--secondary-color);
+    font-weight: 500;
+    margin: 0 12px;
+    transition: color 0.2s;
 }
 
 .navbar-custom .nav-link:hover,
 .navbar-custom .nav-link.active {
-    color: #007bff;
+    color: var(--primary-color);
 }
+
+/* Buttons */
+.btn-primary-custom {
+    background-color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    color: var(--white);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px; /* Pill shape */
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-custom:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary-custom {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary-custom:hover {
+    background-color: var(--white);
+    border-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.btn-outline-primary-custom {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-primary-custom:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
 
 /* Hero Section */
 .hero-section {
-    background: url('../images/hero-bg.jpg') no-repeat center center/cover;
-    padding: 150px 0;
-    color: white;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); /* Subtle gradient */
+    padding: 100px 0;
+    text-align: center;
 }
 
 .hero-section h1 {
     font-size: 3.5rem;
-    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    background: -webkit-linear-gradient(45deg, var(--primary-color), #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    color: var(--secondary-color);
+    max-width: 700px;
+    margin: 0 auto 2rem;
+}
+
+/* Feature Cards */
+.feature-section {
+    padding: 80px 0;
+    background-color: var(--white);
+}
+
+.feature-card {
+    padding: 2rem;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    background: #eff6ff;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
 }
 
 /* Course Card Styles */
 .course-card {
-    background-color: #fff;
-    border: none;
-    border-radius: 15px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: none;
 }
 
 .course-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border-color: var(--primary-color);
 }
 
 .course-card .card-img-top {
@@ -60,65 +192,31 @@ body {
 }
 
 .course-card .card-body {
-    padding: 25px;
+    padding: 1.5rem;
 }
 
 .course-card .card-title {
-    font-weight: 600;
-    color: #333;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
 }
 
-.course-card .card-footer {
-    background-color: #fff;
-    border-top: 1px solid #eee;
-    padding: 20px 25px;
-    font-size: 0.9rem;
+.course-card .card-text {
+    color: var(--secondary-color);
+    font-size: 0.95rem;
 }
-
-/* Button Styles */
-.btn-primary-custom {
-    background-color: #007bff;
-    border-color: #007bff;
-    padding: 12px 25px;
-    border-radius: 30px;
-    font-weight: 600;
-    transition: background-color 0.3s, border-color 0.3s;
-}
-
-.btn-primary-custom:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-
-.btn-secondary-custom {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 30px;
-    font-weight: 600;
-    transition: background-color 0.3s, border-color 0.3s;
-}
-
-.btn-secondary-custom:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
-}
-
 
 /* Footer Styles */
 .footer-custom {
-    background-color: #343a40;
-    color: white;
+    background-color: var(--white);
+    border-top: 1px solid var(--border-color);
+    color: var(--secondary-color);
+    padding: 3rem 0;
 }
 
-#back-to-top {
-    display: inline-block;
-    margin-top: 15px;
-    text-decoration: none;
-    transition: color 0.3s;
+.footer-custom a {
+    color: var(--secondary-color);
 }
 
-#back-to-top:hover {
-    color: #007bff;
+.footer-custom a:hover {
+    color: var(--primary-color);
 }

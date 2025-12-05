@@ -1,0 +1,74 @@
+{% load static %}
+<aside class="fixed left-0 top-0 z-50 h-full w-72 bg-white shadow-lg transition-transform duration-300 md:static md:translate-x-0 md:shadow-none md:border-r border-gray-200 flex flex-col">
+    <!-- Header -->
+    <div class="flex h-16 items-center justify-between border-b border-gray-200 px-4 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600">
+                <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-semibold text-gray-900">Classroom AI</h1>
+                <p class="text-xs text-gray-500">Admin Dashboard</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-col gap-1 p-4 flex-1 overflow-y-auto">
+        <a href="{% url 'dashboard:dashboard' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'admin_dashboard' %}bg-indigo-50 text-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+            Overview
+        </a>
+
+        <a href="{% url 'dashboard:manage_enrollments' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors {% if 'enrollment' in request.path %}bg-indigo-50 text-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            <i data-lucide="users" class="h-5 w-5"></i>
+            Enrollments
+        </a>
+
+        <a href="{% url 'dashboard:manage_students' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors {% if 'student' in request.path and 'enrollment' not in request.path %}bg-indigo-50 text-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            <i data-lucide="graduation-cap" class="h-5 w-5"></i>
+            Students
+        </a>
+
+        <a href="{% url 'dashboard:manage_teachers' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors {% if 'teacher' in request.path %}bg-indigo-50 text-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            <i data-lucide="user-check" class="h-5 w-5"></i>
+            Teachers
+        </a>
+        
+        <!-- Placeholder links for other features from giaovienai -->
+        <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+            <i data-lucide="file-text" class="h-5 w-5"></i>
+            Documents
+        </a>
+        
+        <a href="#" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+            <i data-lucide="bar-chart" class="h-5 w-5"></i>
+            Statistics
+        </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="border-t border-gray-200 p-4 flex-shrink-0">
+        <div class="mb-4 flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <i data-lucide="user" class="h-5 w-5"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="truncate font-medium text-gray-900">{{ user.username }}</p>
+                <p class="text-xs text-gray-500">Admin</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button class="flex-1 flex items-center justify-start px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 transition-colors">
+                <i data-lucide="settings" class="h-4 w-4 mr-2"></i>
+                Settings
+            </button>
+            <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>

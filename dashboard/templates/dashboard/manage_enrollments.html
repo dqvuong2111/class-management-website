@@ -1,0 +1,85 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Enrollment Management</h1>
+            <p class="text-gray-500">Manage student enrollments in classes.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'dashboard:dashboard' %}" class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm transition-colors">
+                Back to Dashboard
+            </a>
+            <a href="{% url 'dashboard:add_enrollment' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium text-sm transition-colors flex items-center gap-2">
+                <i data-lucide="plus" class="h-4 w-4"></i> Enroll Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-6">
+        <div class="relative max-w-md">
+            <form method="get" action="{% url 'dashboard:manage_enrollments' %}">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                <input 
+                    type="text" 
+                    name="q" 
+                    placeholder="Search by student or class..." 
+                    value="{{ query|default:'' }}"
+                    class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                >
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 font-medium">Student Name</th>
+                        <th class="px-6 py-3 font-medium">Class</th>
+                        <th class="px-6 py-3 font-medium">Enrollment Date</th>
+                        <th class="px-6 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for enrollment in enrollments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                             <div class="flex items-center gap-3">
+                                <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-xs">
+                                    {{ enrollment.student.full_name|slice:":2"|upper }}
+                                </div>
+                                {{ enrollment.student.full_name }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">
+                            <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded border border-gray-500">
+                                {{ enrollment.clazz.class_name }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ enrollment.enrollment_date }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'dashboard:delete_enrollment' enrollment.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                            No enrollments found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

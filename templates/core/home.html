@@ -1,43 +1,119 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Welcome to EduPlatform{% endblock %}
+{% block title %}Classroom AI - Smart Learning{% endblock %}
 
 {% block content %}
-<!-- ... Hero Section không đổi ... -->
-<section class="hero-section text-center">
+<!-- Hero Section -->
+<section class="hero-section">
     <div class="container">
-        <h1>Unlock Your Potential with Our Courses</h1>
-        <p>
-            Discover a world of knowledge with expert-led courses designed to help you succeed in your career and personal growth.
-        </p>
-        <a href="{% url 'class_list' %}" class="btn btn-primary-custom btn-lg mt-3">Browse All Courses</a>
-    </div>
-</section>
-
-<!-- Main content area -->
-<div class="container" style="margin-top: -80px; position: relative; z-index: 10;">
-    <h2 class="text-center mb-5">Featured Courses</h2>
-    <div class="row">
-        {% for clazz in classes %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="course-card h-100">
-                {% if clazz.image %}
-                    <img src="{{ clazz.image.url }}" class="card-img-top" alt="{{ clazz.class_name }}">
-                {% else %}
-                    <img src="{% static 'images/default_class.png' %}" class="card-img-top" alt="Default Image">
-                {% endif %}
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ clazz.class_name }}</h5>
-                    <p class="card-text">Dive into the world of {{ clazz.class_name }} with our expert-led course. Perfect for beginners and professionals alike.</p>
-                    <div class="mt-auto">
-                        <span>Teacher: {{ clazz.teacher.full_name|default:"N/A" }}</span>
-                        <strong class="float-end">${{ clazz.price|floatformat:0 }}</strong>
-                    </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <span class="badge bg-primary-subtle text-primary rounded-pill mb-3 px-3 py-2">Powered by AI Technology</span>
+                <h1>Smart Learning Platform<br>for Your Classroom</h1>
+                <p class="lead mb-5">
+                    Transform your teaching experience with AI-driven tools. 
+                    Automate grading, generate questions, and gain deep insights into student performance.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'accounts:signup' %}" class="btn btn-primary-custom btn-lg px-5">Start for Free</a>
+                    <a href="#" class="btn btn-secondary-custom btn-lg px-5">Learn More</a>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-</div>
+</section>
+
+<!-- Features Section -->
+<section class="feature-section">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="mb-3">Why Choose Classroom AI?</h2>
+                <p class="text-muted">Everything you need to manage your class efficiently.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h4>AI Question Gen</h4>
+                    <p class="text-muted">Automatically generate quizzes and exams tailored to your curriculum using advanced AI models.</p>
+                </div>
+            </div>
+            <!-- Feature 2 -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4>Smart Grading</h4>
+                    <p class="text-muted">Save hours of time with instant, accurate AI-powered grading for assignments and tests.</p>
+                </div>
+            </div>
+            <!-- Feature 3 -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Deep Analytics</h4>
+                    <p class="text-muted">Gain actionable insights into student performance and identify areas for improvement instantly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="mb-1">Featured Courses</h2>
+                <p class="text-muted mb-0">Explore our top-rated classes</p>
+            </div>
+            <a href="{% url 'class_list' %}" class="btn btn-outline-primary-custom">View All</a>
+        </div>
+        
+        <div class="row g-4">
+            {% for clazz in classes %}
+            <div class="col-lg-4 col-md-6">
+                <div class="course-card h-100">
+                    <div class="position-relative">
+                        {% if clazz.image %}
+                            <img src="{{ clazz.image.url }}" class="card-img-top" alt="{{ clazz.class_name }}">
+                        {% else %}
+                            <img src="{% static 'images/default_class.png' %}" class="card-img-top" alt="Default Image">
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-white text-dark shadow-sm py-2 px-3 rounded-pill">${{ clazz.price|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ clazz.class_name }}</h5>
+                        <p class="card-text mb-4">{{ clazz.description|truncatewords:15 }}</p>
+                        <div class="mt-auto d-flex align-items-center justify-content-between pt-3 border-top">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user text-secondary small"></i>
+                                </div>
+                                <small class="text-muted">{{ clazz.teacher.full_name|default:"Instructor" }}</small>
+                            </div>
+                            <a href="{% url 'class_detail' clazz.pk %}" class="text-primary fw-bold small">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No courses available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 {% endblock %}

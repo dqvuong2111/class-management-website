@@ -1,0 +1,126 @@
+[
+  {
+    "model": "core.classtype",
+    "pk": 1,
+    "fields": {
+      "code": "SCI",
+      "description": "Science and Physics",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.classtype",
+    "pk": 2,
+    "fields": {
+      "code": "LANG",
+      "description": "Languages and Literature",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.teacher",
+    "pk": 1,
+    "fields": {
+      "full_name": "Marie Curie",
+      "dob": "1867-11-07",
+      "phone_number": "123-456-0001",
+      "email": "marie.curie@example.com",
+      "address": "Paris, France",
+      "qualification": "Ph.D. in Physics",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.teacher",
+    "pk": 2,
+    "fields": {
+      "full_name": "William Shakespeare",
+      "dob": "1564-04-26",
+      "phone_number": "123-456-0002",
+      "email": "william.shake@example.com",
+      "address": "Stratford-upon-Avon, England",
+      "qualification": "Master of Arts",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.staff",
+    "pk": 1,
+    "fields": {
+      "full_name": "Sherlock Holmes",
+      "dob": "1854-01-06",
+      "phone_number": "999-888-7777",
+      "email": "sherlock@example.com",
+      "address": "221B Baker Street, London",
+      "position": "Inspector",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.student",
+    "pk": 1,
+    "fields": {
+      "full_name": "Harry Potter",
+      "dob": "1980-07-31",
+      "phone_number": "555-000-0001",
+      "email": "harry.potter@hogwarts.edu",
+      "address": "4 Privet Drive",
+      "user": null,
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.student",
+    "pk": 2,
+    "fields": {
+      "full_name": "Hermione Granger",
+      "dob": "1979-09-19",
+      "phone_number": "555-000-0002",
+      "email": "hermione@hogwarts.edu",
+      "address": "Hampstead Garden Suburb",
+      "user": null,
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.clazz",
+    "pk": 1,
+    "fields": {
+      "class_name": "Physics 101",
+      "class_type": 1,
+      "teacher": 1,
+      "staff": 1,
+      "start_date": "2025-01-15",
+      "end_date": "2025-05-20",
+      "price": "300.00",
+      "room": "Lab 1",
+      "image": "class_images/default_class.png",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.clazz",
+    "pk": 2,
+    "fields": {
+      "class_name": "English Literature",
+      "class_type": 2,
+      "teacher": 2,
+      "staff": 1,
+      "start_date": "2025-02-01",
+      "end_date": "2025-06-01",
+      "price": "250.00",
+      "room": "Auditorium B",
+      "image": "class_images/default_class.png",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
+    }
+  }
+]
