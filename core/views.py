@@ -61,3 +61,9 @@ def enroll_student(request, class_id):
     Enrollment.objects.create(student=student, clazz=clazz)
     messages.success(request, f"Successfully enrolled in {clazz.class_name}!")
     return redirect('dashboard:student_dashboard')
+
+def features(request):
+    """
+    This view renders the features page.
+    """
+    return render(request, 'core/features.html')
