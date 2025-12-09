@@ -4,65 +4,130 @@
 {% block title %}{{ assignment.title }} - Submit{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-6 max-w-3xl space-y-6">
+<div class="container mx-auto p-6 max-w-3xl space-y-8">
     <div class="mb-6">
-        <a href="{% url 'dashboard:student_class_detail' clazz.pk %}" class="flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 mb-2">
-            <i data-lucide="arrow-left" class="h-4 w-4"></i> Back to Class
+        <a href="{% url 'dashboard:student_class_detail' clazz.pk %}" class="flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+            <i data-lucide="arrow-left" class="h-4 w-4"></i> Back to Class Details
         </a>
-        <h1 class="text-3xl font-bold text-gray-900">{{ assignment.title }}</h1>
-        <div class="flex items-center gap-4 text-sm text-gray-500 mt-2">
-            <span class="flex items-center gap-1"><i data-lucide="calendar" class="h-4 w-4"></i> Due: {{ assignment.due_date|date:"M d, H:i" }}</span>
-            <span class="flex items-center gap-1"><i data-lucide="book" class="h-4 w-4"></i> {{ clazz.class_name }}</span>
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight mt-2">{{ assignment.title }}</h1>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 mt-2">
+            <span class="flex items-center gap-1">
+                <i data-lucide="calendar" class="h-4 w-4 text-indigo-500"></i> Due: {{ assignment.due_date|date:"M d, H:i" }}
+            </span>
+            <span class="flex items-center gap-1">
+                <i data-lucide="book" class="h-4 w-4 text-indigo-500"></i> {{ clazz.class_name }}
+            </span>
         </div>
     </div>
 
+    <!-- Assignment Description -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="font-semibold text-gray-900 mb-2">Description</h3>
-        <p class="text-gray-600 whitespace-pre-wrap">{{ assignment.description }}</p>
+        <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <i data-lucide="align-left" class="h-5 w-5 text-indigo-600"></i>
+            Description
+        </h3>
+        <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">{{ assignment.description }}</p>
     </div>
 
+    <!-- Your Submission Section -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="font-semibold text-gray-900 mb-4">Your Submission</h3>
+        <h3 class="font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="h-5 w-5 text-purple-600"></i>
+            Your Submission
+        </h3>
         
         {% if submission %}
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-                <i data-lucide="check-circle" class="h-5 w-5 text-green-600 mt-0.5"></i>
-                <div>
-                    <h4 class="font-medium text-green-900">Submitted on {{ submission.submitted_at|date:"M d, Y H:i" }}</h4>
-                    <p class="text-sm text-green-700 mt-1">
-                        File: <a href="{{ submission.submission_file.url }}" target="_blank" class="underline hover:text-green-900">View File</a>
-                    </p>
-                    {% if submission.grade is not None %}
-                        <div class="mt-3 pt-3 border-t border-green-200">
-                            <p class="font-bold text-green-900">Grade: {{ submission.grade }}</p>
-                            {% if submission.feedback %}
-                                <p class="text-sm text-green-800 mt-1">Feedback: {{ submission.feedback }}</p>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <p class="text-sm text-green-600 mt-2">Not graded yet.</p>
-                    {% endif %}
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6 space-y-3">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="h-6 w-6 text-purple-600 shrink-0"></i>
+                    <div>
+                        <h4 class="font-bold text-purple-900">Submitted Successfully!</h4>
+                        <p class="text-sm text-purple-700">on {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
+                    </div>
                 </div>
+                
+                {% if submission.submission_file %}
+                    <a href="{{ submission.submission_file.url }}" target="_blank" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-white border border-purple-100 hover:bg-purple-100 transition-colors group/file">
+                        <i data-lucide="file-text" class="h-5 w-5 text-purple-500"></i>
+                        <span class="text-sm font-medium text-gray-900 truncate flex-1">{{ submission.submission_file.name|cut:"assignment_submissions/" }}</span>
+                        <i data-lucide="external-link" class="h-4 w-4 text-gray-400 group-hover/file:text-purple-600"></i>
+                    </a>
+                {% endif %}
+
+                {% if submission.grade is not None or submission.feedback %}
+                    <div class="mt-4 pt-4 border-t border-purple-200 space-y-3">
+                        <h4 class="font-bold text-purple-900 text-lg">Teacher's Feedback</h4>
+                        {% if submission.grade is not None %}
+                            <p class="text-gray-800 flex items-center gap-2">
+                                <span class="text-sm text-purple-600 font-medium">Grade:</span>
+                                <span class="font-bold text-xl text-purple-800">{{ submission.grade }} / 10</span>
+                            </p>
+                        {% endif %}
+                        {% if submission.feedback %}
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                <span class="font-medium text-purple-600">Comments:</span><br>
+                                {{ submission.feedback }}
+                            </p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-purple-700 mt-2">Your submission is awaiting grading.</p>
+                {% endif %}
             </div>
             
-            <div class="flex items-center gap-2 mb-4">
+            <div class="flex items-center gap-2 mb-6">
                  <div class="h-px bg-gray-200 flex-1"></div>
-                 <span class="text-xs text-gray-400 font-medium">RESUBMIT</span>
+                 <span class="text-xs text-gray-500 font-medium uppercase tracking-wider">Update Submission</span>
                  <div class="h-px bg-gray-200 flex-1"></div>
             </div>
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
-                {{ form.submission_file }}
-                <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX, ZIP. Max size: 10MB.</p>
+                <label for="id_submission_file" class="block text-sm font-bold text-gray-700 mb-2">Upload New File</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer hover:border-indigo-400 transition-colors group">
+                    <div class="space-y-1 text-center">
+                        <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="id_submission_file" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                <span>Upload a file</span>
+                                <input id="id_submission_file" name="submission_file" type="file" class="sr-only">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500" id="file-name-display">
+                            {% if submission.submission_file %}
+                                Currently: {{ submission.submission_file.name|cut:"assignment_submissions/" }} (Upload to replace)
+                            {% else %}
+                                No file chosen
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if form.submission_file.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.submission_file.errors }}</p>
+                {% endif %}
+                 <p class="text-xs text-gray-500 mt-2">Supported formats: PDF, DOCX, ZIP. Max size: 10MB.</p>
             </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+            
+            <button type="submit" class="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5">
+                <i data-lucide="save" class="h-5 w-5"></i>
                 {% if submission %}Update Submission{% else %}Submit Assignment{% endif %}
             </button>
         </form>
     </div>
 </div>
+
+<script>
+    // Update file name display on selection
+    document.getElementById('id_submission_file').addEventListener('change', function() {
+        const fileNameDisplay = document.getElementById('file-name-display');
+        if (this.files && this.files.length > 0) {
+            fileNameDisplay.textContent = 'Selected: ' + this.files[0].name;
+        } else {
+            fileNameDisplay.textContent = 'No file chosen';
+        }
+    });
+</script>
 {% endblock %}

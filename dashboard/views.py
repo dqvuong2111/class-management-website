@@ -4,7 +4,12 @@ from django.contrib import messages
 from django import forms
 import datetime
 import calendar
-from core.models import Clazz, Teacher, Student, Staff, Enrollment, ClassType, Schedule, Attendance, Material, Announcement, Assignment, AssignmentSubmission, Feedback, Message, AttendanceSession
+from django.urls import reverse # Added for generating URLs in views
+from core.models import (
+    Clazz, Teacher, Student, Staff, Enrollment, ClassType, Schedule, Attendance,
+    Material, Announcement, Assignment, AssignmentSubmission, Feedback, Message,
+    AttendanceSession, StudentAnnouncementReadStatus, StudentAssignmentReadStatus
+)
 from .forms import ClassForm, TeacherForm, StudentForm, StaffForm, EnrollmentForm, ClassTypeForm, ScheduleForm, AttendanceForm, MaterialForm, AnnouncementForm, AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm, AssignmentCreateForm, FeedbackForm, MessageForm
 from django.db.models import Count, Q, Avg
 import uuid
@@ -896,28 +901,50 @@ def student_dashboard_view(request):
     # Notifications Logic
     enrolled_classes = [e.clazz for e in enrollments]
     
-    recent_announcements = Announcement.objects.filter(clazz__in=enrolled_classes).order_by('-posted_at')[:5]
-    recent_assignments = Assignment.objects.filter(clazz__in=enrolled_classes).order_by('-created_at')[:5]
+    # Fetch recent announcements and assignments for enrolled classes
+    recent_announcements_qs = Announcement.objects.filter(clazz__in=enrolled_classes).order_by('-posted_at')
+    recent_assignments_qs = Assignment.objects.filter(clazz__in=enrolled_classes).order_by('-created_at')
     
-    # Combine and sort (simple merge for display)
     notifications = []
-    for a in recent_announcements:
+    unread_count = 0
+
+    for a in recent_announcements_qs:
+        # Check read status for each announcement
+        read_status, created = StudentAnnouncementReadStatus.objects.get_or_create(
+            student=student, announcement=a,
+            defaults={'is_read': False}
+        )
         notifications.append({
             'type': 'announcement',
+            'pk': a.pk, # Add primary key for mark as read action
             'title': a.title,
             'class_name': a.clazz.class_name,
             'date': a.posted_at,
-            'icon': 'megaphone'
+            'icon': 'megaphone',
+            'is_read': read_status.is_read,
+            'url': reverse('dashboard:student_class_detail', kwargs={'class_pk': a.clazz.pk}) # Direct link
         })
+        if not read_status.is_read:
+            unread_count += 1
         
-    for a in recent_assignments:
+    for a in recent_assignments_qs:
+        # Check read status for each assignment
+        read_status, created = StudentAssignmentReadStatus.objects.get_or_create(
+            student=student, assignment=a,
+            defaults={'is_read': False}
+        )
         notifications.append({
             'type': 'assignment',
+            'pk': a.pk, # Add primary key for mark as read action
             'title': a.title,
             'class_name': a.clazz.class_name,
             'date': a.created_at,
-            'icon': 'clipboard-list'
+            'icon': 'clipboard-list',
+            'is_read': read_status.is_read,
+            'url': reverse('dashboard:student_submit_assignment', kwargs={'assignment_pk': a.pk}) # Direct link
         })
+        if not read_status.is_read:
+            unread_count += 1
     
     # Sort by date descending
     notifications.sort(key=lambda x: x['date'], reverse=True)
@@ -927,8 +954,43 @@ def student_dashboard_view(request):
         'student': student,
         'enrollments': enrollments,
         'notifications': notifications,
-        'unread_count': len(notifications) # Simple count for now
+        'unread_count': unread_count # Now reflects actual unread notifications
     })
+
+@login_required
+def mark_notification_as_read(request):
+    if request.method == 'POST':
+        student = get_object_or_404(Student, user=request.user)
+        notification_type = request.POST.get('notification_type')
+        notification_pk = request.POST.get('notification_pk')
+        
+        if not notification_type or not notification_pk:
+            messages.error(request, "Invalid notification data.")
+            return redirect('dashboard:student_dashboard')
+
+        try:
+            if notification_type == 'announcement':
+                announcement = get_object_or_404(Announcement, pk=notification_pk)
+                StudentAnnouncementReadStatus.objects.update_or_create(
+                    student=student,
+                    announcement=announcement,
+                    defaults={'is_read': True, 'read_at': timezone.now()}
+                )
+                messages.success(request, f"Announcement '{announcement.title}' marked as read.")
+            elif notification_type == 'assignment':
+                assignment = get_object_or_404(Assignment, pk=notification_pk)
+                StudentAssignmentReadStatus.objects.update_or_create(
+                    student=student,
+                    assignment=assignment,
+                    defaults={'is_read': True, 'read_at': timezone.now()}
+                )
+                messages.success(request, f"Assignment '{assignment.title}' marked as read.")
+            else:
+                messages.error(request, "Unknown notification type.")
+        except Exception as e:
+            messages.error(request, f"Error marking notification as read: {e}")
+            
+    return redirect('dashboard:student_dashboard')
 
 @login_required
 def student_courses_view(request):

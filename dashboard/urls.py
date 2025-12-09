@@ -35,6 +35,7 @@ urlpatterns = [
     path('student/schedule/', views.student_schedule_view, name='student_schedule'),
     path('student/pending/', views.student_pending_requests_view, name='student_pending'),
     path('student/achievements/', views.student_achievements_view, name='student_achievements'),
+    path('student/notifications/mark-read/', views.mark_notification_as_read, name='mark_notification_as_read'),
     
     # Class Management
     path('add_class/', views.add_class_view, name='add_class'),

@@ -4,166 +4,222 @@
 {% block title %}{{ clazz.class_name }} - Details{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-6 space-y-6">
+<div class="space-y-8">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+        <a href="{% url 'dashboard:teacher_dashboard' %}" class="hover:text-indigo-600 transition-colors flex items-center gap-1">
+            <i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard
+        </a>
+        <i data-lucide="chevron-right" class="h-4 w-4"></i>
+        <span class="font-medium text-gray-900">{{ clazz.class_name }}</span>
+    </div>
+
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">{{ clazz.class_name }}</h1>
-            <p class="text-gray-500">{{ clazz.class_type.code }} | {{ clazz.room }}</p>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">{{ clazz.class_name }}</h1>
+            <div class="flex items-center gap-3 mt-2 text-gray-500 text-sm">
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">
+                    {{ clazz.class_type.code }}
+                </span>
+                <span class="flex items-center gap-1">
+                    <i data-lucide="map-pin" class="h-4 w-4"></i> {{ clazz.room }}
+                </span>
+                <span class="flex items-center gap-1">
+                    <i data-lucide="users" class="h-4 w-4"></i> {{ enrollments.count }} Students
+                </span>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <a href="{% url 'dashboard:take_attendance' clazz.pk %}" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'dashboard:take_attendance' clazz.pk %}" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
                 <i data-lucide="check-square" class="h-4 w-4"></i>
                 Take Attendance
             </a>
-            <a href="{% url 'dashboard:enter_grades' clazz.pk %}" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+            <a href="{% url 'dashboard:enter_grades' clazz.pk %}" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
                 <i data-lucide="graduation-cap" class="h-4 w-4"></i>
                 Grades
             </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Left Column: Resources & Announcements -->
-        <div class="lg:col-span-2 space-y-6">
+        <!-- Left Column: Resources, Assignments, Announcements -->
+        <div class="lg:col-span-2 space-y-8">
             
-            <!-- Announcements -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="font-semibold text-gray-900 flex items-center gap-2">
+            <!-- Quick Actions Toolbar (Optional, keeps primary actions handy) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button onclick="document.getElementById('modal-announcement').showModal()" class="flex items-center justify-center gap-2 p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 border border-orange-100 rounded-xl text-orange-700 font-medium hover:shadow-md hover:border-orange-200 transition-all group">
+                    <div class="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
                         <i data-lucide="megaphone" class="h-5 w-5 text-orange-500"></i>
+                    </div>
+                    New Announcement
+                </button>
+                <button onclick="document.getElementById('modal-assignment').showModal()" class="flex items-center justify-center gap-2 p-4 bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-100 rounded-xl text-purple-700 font-medium hover:shadow-md hover:border-purple-200 transition-all group">
+                    <div class="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                         <i data-lucide="clipboard-list" class="h-5 w-5 text-purple-500"></i>
+                    </div>
+                    Create Assignment
+                </button>
+                <button onclick="document.getElementById('modal-material').showModal()" class="flex items-center justify-center gap-2 p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-xl text-blue-700 font-medium hover:shadow-md hover:border-blue-200 transition-all group">
+                     <div class="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                         <i data-lucide="upload-cloud" class="h-5 w-5 text-blue-500"></i>
+                    </div>
+                    Upload Material
+                </button>
+            </div>
+
+            <!-- Announcements Section -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
                         Announcements
                     </h2>
-                    <button onclick="document.getElementById('modal-announcement').classList.remove('hidden')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                        + New Post
-                    </button>
                 </div>
-                <div class="divide-y divide-gray-100">
+                <div class="space-y-4">
                     {% for announcement in announcements %}
-                    <div class="p-4 hover:bg-gray-50 transition-colors group">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-medium text-gray-900">{{ announcement.title }}</h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-500">{{ announcement.posted_at|date:"M d, H:i" }}</span>
-                                <a href="{% url 'dashboard:delete_announcement' announcement.pk %}" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" onclick="return confirm('Delete this announcement?')">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+                                    <i data-lucide="megaphone" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 text-lg leading-tight">{{ announcement.title }}</h3>
+                                    <span class="text-xs text-gray-500 font-medium">{{ announcement.posted_at|date:"M d, Y • H:i" }}</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="{% url 'dashboard:delete_announcement' announcement.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" onclick="return confirm('Delete this announcement?')" title="Delete">
                                     <i data-lucide="trash-2" class="h-4 w-4"></i>
                                 </a>
                             </div>
                         </div>
-                        <p class="text-gray-600 text-sm whitespace-pre-wrap">{{ announcement.content }}</p>
+                        <div class="pl-13 ml-13 border-l-2 border-orange-100 pl-4 mt-3">
+                             <p class="text-gray-600 whitespace-pre-wrap leading-relaxed">{{ announcement.content }}</p>
+                        </div>
                     </div>
                     {% empty %}
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        No announcements yet.
+                    <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
+                        <div class="bg-gray-50 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                             <i data-lucide="megaphone-off" class="h-6 w-6"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No announcements posted yet.</p>
                     </div>
                     {% endfor %}
                 </div>
-            </div>
+            </section>
 
-            <!-- Materials -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="folder-open" class="h-5 w-5 text-blue-500"></i>
-                        Class Materials
+             <!-- Assignments Section -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        Assignments
                     </h2>
-                    <button onclick="document.getElementById('modal-material').classList.remove('hidden')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                        + Upload File
-                    </button>
                 </div>
-                <div class="divide-y divide-gray-100">
-                    {% for material in materials %}
-                    <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <i data-lucide="file-text" class="h-5 w-5"></i>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for assignment in assignments %}
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group flex flex-col h-full">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                                <i data-lucide="clipboard-check" class="h-6 w-6"></i>
                             </div>
-                            <div>
-                                <a href="{{ material.file.url }}" target="_blank" class="font-medium text-gray-900 hover:text-indigo-600 hover:underline">
-                                    {{ material.title }}
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="{% url 'dashboard:delete_assignment' assignment.pk %}" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" onclick="return confirm('Delete this assignment?')">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
                                 </a>
-                                <p class="text-xs text-gray-500">{{ material.uploaded_at|date:"M d, Y" }}</p>
                             </div>
                         </div>
-                        <a href="{% url 'dashboard:delete_material' material.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all" onclick="return confirm('Delete this file?')">
-                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        
+                        <h3 class="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{{ assignment.title }}</h3>
+                        <div class="text-sm text-gray-500 mb-4 flex items-center gap-1.5">
+                            <i data-lucide="calendar-clock" class="h-3.5 w-3.5"></i>
+                            Due: {{ assignment.due_date|date:"M d, H:i" }}
+                        </div>
+                        
+                        <p class="text-sm text-gray-600 line-clamp-2 mb-4 flex-1">{{ assignment.description }}</p>
+                        
+                        <a href="{% url 'dashboard:teacher_assignment_submissions' assignment.pk %}" class="mt-auto w-full py-2.5 flex items-center justify-center gap-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-purple-600 transition-colors shadow-sm">
+                            View Submissions
+                            <i data-lucide="arrow-right" class="h-4 w-4"></i>
                         </a>
                     </div>
                     {% empty %}
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        No materials uploaded yet.
+                    <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
+                         <div class="bg-gray-50 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                             <i data-lucide="clipboard-x" class="h-6 w-6"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No assignments created yet.</p>
                     </div>
                     {% endfor %}
                 </div>
-            </div>
-            
-            <!-- Assignments -->
-             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="clipboard-list" class="h-5 w-5 text-purple-500"></i>
-                        Assignments
+            </section>
+
+            <!-- Materials Section -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        Class Materials
                     </h2>
-                    <button onclick="document.getElementById('modal-assignment').classList.remove('hidden')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                        + Create Task
-                    </button>
                 </div>
-                <div class="divide-y divide-gray-100">
-                    {% for assignment in assignments %}
-                    <div class="p-4 hover:bg-gray-50 transition-colors group">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-medium text-gray-900">{{ assignment.title }}</h3>
-                                <p class="text-xs text-gray-500 mt-1">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</p>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="divide-y divide-gray-50">
+                        {% for material in materials %}
+                        <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                            <div class="flex items-center gap-4">
+                                <div class="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
+                                    <i data-lucide="file-text" class="h-5 w-5"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <a href="{{ material.file.url }}" target="_blank" class="block font-medium text-gray-900 hover:text-blue-600 hover:underline truncate transition-colors">
+                                        {{ material.title }}
+                                    </a>
+                                    <span class="text-xs text-gray-500">Uploaded {{ material.uploaded_at|date:"M d, Y" }}</span>
+                                </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="{% url 'dashboard:teacher_assignment_submissions' assignment.pk %}" class="text-indigo-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" title="View Submissions">
-                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                <a href="{{ material.file.url }}" download class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Download">
+                                    <i data-lucide="download" class="h-4 w-4"></i>
                                 </a>
-                                <a href="{% url 'dashboard:delete_assignment' assignment.pk %}" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" onclick="return confirm('Delete this assignment?')">
+                                <a href="{% url 'dashboard:delete_material' material.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all" onclick="return confirm('Delete this file?')" title="Delete">
                                     <i data-lucide="trash-2" class="h-4 w-4"></i>
                                 </a>
                             </div>
                         </div>
-                        <p class="text-gray-600 text-sm mt-2 line-clamp-2">{{ assignment.description }}</p>
+                        {% empty %}
+                        <div class="p-8 text-center text-gray-500 text-sm">
+                            No materials uploaded yet.
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% empty %}
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        No assignments created yet.
-                    </div>
-                    {% endfor %}
                 </div>
-            </div>
-
+            </section>
         </div>
 
         <!-- Right Column: Student List -->
-        <div class="space-y-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-                <div class="p-4 border-b border-gray-200 bg-gray-50">
-                    <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="users" class="h-5 w-5 text-indigo-500"></i>
-                        Students ({{ enrollments.count }})
-                    </h2>
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col sticky top-6">
+                <div class="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-900">Students</h3>
+                    <span class="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">{{ enrollments.count }}</span>
                 </div>
-                <div class="overflow-y-auto max-h-[600px] divide-y divide-gray-100">
+                
+                <div class="overflow-y-auto max-h-[calc(100vh-200px)] p-2 space-y-1 custom-scrollbar">
                     {% for enrollment in enrollments %}
-                    <a href="{% url 'dashboard:teacher_student_detail' clazz.pk enrollment.student.pk %}" class="block p-4 hover:bg-indigo-50 transition-colors flex items-center justify-between group">
-                        <div class="flex items-center gap-3">
-                            <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
-                                {{ enrollment.student.full_name|slice:":2"|upper }}
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-700">{{ enrollment.student.full_name }}</p>
-                                <p class="text-xs text-gray-500">{{ enrollment.student.student_id }}</p>
-                            </div>
+                    <a href="{% url 'dashboard:teacher_student_detail' clazz.pk enrollment.student.pk %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group border border-transparent hover:border-gray-100">
+                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm shadow-sm">
+                            {{ enrollment.student.full_name|slice:":1" }}
                         </div>
-                        <i data-lucide="chevron-right" class="h-4 w-4 text-gray-300 group-hover:text-indigo-400"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{{ enrollment.student.full_name }}</p>
+                            <p class="text-xs text-gray-500 truncate">{{ enrollment.student.student_id }}</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-gray-300 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all"></i>
                     </a>
                     {% empty %}
-                    <div class="p-6 text-center text-gray-500 text-sm">
-                        No active students.
+                    <div class="p-8 text-center text-gray-400">
+                        <i data-lucide="users" class="h-8 w-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">No students enrolled.</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -172,90 +228,143 @@
     </div>
 </div>
 
-<!-- Modals -->
 <!-- Add Announcement Modal -->
-<div id="modal-announcement" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">New Announcement</h3>
-            <button onclick="document.getElementById('modal-announcement').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+<dialog id="modal-announcement" class="modal backdrop:bg-gray-900/50 p-0 rounded-2xl shadow-2xl w-full max-w-md open:animate-in open:fade-in open:zoom-in-95 backdrop:animate-in backdrop:fade-in">
+    <div class="bg-white flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900">New Announcement</h3>
+            <button onclick="this.closest('dialog').close()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <i data-lucide="x" class="h-5 w-5"></i>
             </button>
         </div>
-        <form method="post">
+        <form method="post" class="p-6">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="announcement">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Title</label>
                     {{ announcement_form.title }}
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Content</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Content</label>
                     {{ announcement_form.content }}
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Post</button>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="this.closest('dialog').close()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 shadow-lg shadow-orange-200 transition-all hover:-translate-y-0.5">Post Announcement</button>
+                </div>
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
-<!-- Add Material Modal -->
-<div id="modal-material" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Upload Material</h3>
-            <button onclick="document.getElementById('modal-material').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+<!-- Upload Material Modal -->
+<dialog id="modal-material" class="modal backdrop:bg-gray-900/50 p-0 rounded-2xl shadow-2xl w-full max-w-md open:animate-in open:fade-in open:zoom-in-95 backdrop:animate-in backdrop:fade-in">
+    <div class="bg-white flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900">Upload Material</h3>
+            <button onclick="this.closest('dialog').close()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <i data-lucide="x" class="h-5 w-5"></i>
             </button>
         </div>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" class="p-6">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="material">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Title</label>
                     {{ material_form.title }}
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">File</label>
-                    {{ material_form.file }}
+                    <label class="block text-sm font-bold text-gray-700 mb-2">File</label>
+                    <div class="relative group">
+                         {{ material_form.file }}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX, PPTX, ZIP.</p>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Upload</button>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="this.closest('dialog').close()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5">Upload File</button>
+                </div>
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
-<!-- Add Assignment Modal -->
-<div id="modal-assignment" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Create Assignment</h3>
-            <button onclick="document.getElementById('modal-assignment').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+<!-- Create Assignment Modal -->
+<dialog id="modal-assignment" class="modal backdrop:bg-gray-900/50 p-0 rounded-2xl shadow-2xl w-full max-w-lg open:animate-in open:fade-in open:zoom-in-95 backdrop:animate-in backdrop:fade-in">
+    <div class="bg-white flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900">Create Assignment</h3>
+            <button onclick="this.closest('dialog').close()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <i data-lucide="x" class="h-5 w-5"></i>
             </button>
         </div>
-        <form method="post">
+        <form method="post" class="p-6">
             {% csrf_token %}
             <input type="hidden" name="form_type" value="assignment">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Title</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Title</label>
                     {{ assignment_form.title }}
                 </div>
+                <div class="grid grid-cols-1 gap-4">
+                     <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Due Date & Time</label>
+                        {{ assignment_form.due_date }}
+                    </div>
+                </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
                     {{ assignment_form.description }}
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Due Date</label>
-                    {{ assignment_form.due_date }}
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="this.closest('dialog').close()" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all hover:-translate-y-0.5">Create Task</button>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Create</button>
             </div>
         </form>
     </div>
-</div>
+</dialog>
 
+<style>
+    /* Scoped styles for the modals form elements to look modern */
+    dialog input[type="text"],
+    dialog input[type="datetime-local"],
+    dialog textarea,
+    dialog select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    dialog input:focus,
+    dialog textarea:focus,
+    dialog select:focus {
+        background-color: #fff;
+        border-color: #6366f1; /* Indigo-500 */
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+    
+    dialog input[type="file"] {
+        padding: 0.5rem;
+        background-color: white;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #e2e8f0;
+        border-radius: 20px;
+    }
+</style>
 {% endblock %}

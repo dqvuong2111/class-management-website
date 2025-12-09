@@ -223,3 +223,32 @@ class AssignmentSubmission(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} - {self.assignment.title}"
+
+# New Models for Notification Read Status
+class StudentAnnouncementReadStatus(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='announcement_read_statuses')
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, related_name='student_read_statuses')
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('student', 'announcement')
+        verbose_name = "Student Announcement Read Status"
+        verbose_name_plural = "Student Announcement Read Statuses"
+
+    def __str__(self):
+        return f"{self.student.full_name} - {self.announcement.title} (Read: {self.is_read})"
+
+class StudentAssignmentReadStatus(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='assignment_read_statuses')
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='student_read_statuses')
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('student', 'assignment')
+        verbose_name = "Student Assignment Read Status"
+        verbose_name_plural = "Student Assignment Read Statuses"
+
+    def __str__(self):
+        return f"{self.student.full_name} - {self.assignment.title} (Read: {self.is_read})"

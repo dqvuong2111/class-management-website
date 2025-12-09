@@ -38,8 +38,8 @@
                 <div class="max-h-96 overflow-y-auto">
                     {% if notifications %}
                         {% for noti in notifications %}
-                            <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                                <div class="flex gap-3">
+                            <div class="p-4 border-b border-gray-50 {% if not noti.is_read %}bg-blue-50/50{% endif %} hover:bg-gray-50 transition-colors">
+                                <div class="flex gap-3 items-center">
                                     <div class="mt-1">
                                         {% if noti.type == 'announcement' %}
                                             <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
@@ -51,10 +51,22 @@
                                             </div>
                                         {% endif %}
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">{{ noti.title }}</p>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium {% if not noti.is_read %}text-gray-900{% else %}text-gray-500{% endif %}">
+                                            <a href="{{ noti.url }}" class="hover:underline {% if not noti.is_read %}font-semibold{% endif %}">{{ noti.title }}</a>
+                                        </p>
                                         <p class="text-xs text-gray-500">{{ noti.class_name }} • {{ noti.date|timesince }} ago</p>
                                     </div>
+                                    {% if not noti.is_read %}
+                                        <form method="post" action="{% url 'dashboard:mark_notification_as_read' %}" class="ml-auto flex-shrink-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="notification_type" value="{{ noti.type }}">
+                                            <input type="hidden" name="notification_pk" value="{{ noti.pk }}">
+                                            <button type="submit" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Mark as Read">
+                                                <i data-lucide="check" class="h-4 w-4"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -86,7 +98,6 @@
                 <!-- Class Image -->
                 <div class="h-48 overflow-hidden relative">
                     {% if enrollment.clazz.image and enrollment.clazz.image.url %}
-                        <!-- Debug: Image URL is {{ enrollment.clazz.image.url }} -->
                         <img src="{{ enrollment.clazz.image.url }}" alt="{{ enrollment.clazz.class_name }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                     {% else %}
                         <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -288,10 +299,9 @@
     
     /* Animation for blobs */
     @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
     }
     .animate-blob {
         animation: blob 7s infinite;
