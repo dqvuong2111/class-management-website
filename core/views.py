@@ -1,7 +1,27 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Clazz, Student, Enrollment
+from .models import Clazz, Student, Enrollment, Teacher, Staff
+from django.db.models import Q
+
+def get_display_name(user):
+    """
+    Returns the full name of the user based on their role (Student, Teacher, Staff),
+    or their username if no role is found.
+    """
+    if not user.is_authenticated:
+        return ""
+    
+    if hasattr(user, 'student'):
+        return user.student.full_name
+    
+    if hasattr(user, 'teacher'):
+        return user.teacher.full_name
+        
+    if hasattr(user, 'staff'):
+        return user.staff.full_name
+        
+    return user.username
 
 # Create your views here.
 def home(request):
@@ -12,7 +32,8 @@ def home(request):
     featured_classes = Clazz.objects.all().order_by('-class_id')[:3]
     
     context = {
-        'classes': featured_classes
+        'classes': featured_classes,
+        'user_display_name': get_display_name(request.user)
     }
     return render(request, 'core/home.html', context)
 
@@ -22,8 +43,18 @@ def class_list(request):
     """
     all_classes = Clazz.objects.all().order_by('class_name') # Lấy tất cả lớp học
     
+    query = request.GET.get('q')
+    if query:
+        all_classes = all_classes.filter(
+            Q(class_name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(teacher__full_name__icontains=query)
+        )
+    
     context = {
-        'classes': all_classes
+        'classes': all_classes,
+        'query': query,
+        'user_display_name': get_display_name(request.user)
     }
     return render(request, 'core/class_list.html', context)
 
@@ -37,7 +68,8 @@ def class_detail(request, pk):
     context = {
         'clazz': clazz,
         # Bạn có thể truyền thêm dữ liệu liên quan ở đây, ví dụ danh sách học viên
-        'enrollments': clazz.enrollments.all()
+        'enrollments': clazz.enrollments.all(),
+        'user_display_name': get_display_name(request.user)
     }
     return render(request, 'core/class_detail.html', context)
 
@@ -57,8 +89,10 @@ def enroll_student(request, class_id):
     if enrollment:
         if enrollment.status == 'approved':
             messages.warning(request, "You are already enrolled in this class.")
+            return redirect('dashboard:student_dashboard')
         elif enrollment.status == 'pending':
             messages.info(request, "You have already requested to enroll in this class. Please wait for approval.")
+            return redirect('dashboard:student_dashboard')
         elif enrollment.status == 'rejected':
             messages.error(request, "Your previous enrollment request for this class was rejected.")
         return redirect('class_detail', pk=class_id)

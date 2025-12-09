@@ -37,7 +37,7 @@
                 <!-- Auth Buttons -->
                 <div class="hidden md:flex items-center gap-4">
                     {% if user.is_authenticated %}
-                         <span class="text-sm font-medium text-gray-600">Hi, {{ user.username }}</span>
+                         <span class="text-sm font-medium text-gray-600">Hi, {{ user_display_name|default:user.username }}</span>
                         {% if user.is_staff %}
                              <a href="{% url 'dashboard:dashboard' %}" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Dashboard</a>
                         {% elif user.teacher %}
@@ -97,7 +97,16 @@
     <section class="pt-32 pb-12 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Explore Our Courses</h1>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Discover a wide range of courses designed to help you master new skills and advance your career.</p>
+            <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-8">Discover a wide range of courses designed to help you master new skills and advance your career.</p>
+            
+            <!-- Search Form -->
+            <form method="GET" action="{% url 'class_list' %}" class="max-w-md mx-auto relative">
+                <input type="text" name="q" placeholder="Search courses, topics, or instructors..." value="{{ query|default:'' }}" class="w-full pl-12 pr-4 py-4 rounded-full border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none shadow-sm transition-all">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5"></i>
+                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition-colors">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </button>
+            </form>
         </div>
     </section>
 
@@ -150,7 +159,11 @@
                             <i data-lucide="search-x" class="h-10 w-10 text-gray-400"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">No Courses Found</h3>
-                        <p class="text-gray-500">Check back later for new classes.</p>
+                        {% if query %}
+                            <p class="text-gray-500">We couldn't find any courses matching "{{ query }}". Try different keywords.</p>
+                        {% else %}
+                            <p class="text-gray-500">Check back later for new classes.</p>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>

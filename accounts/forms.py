@@ -10,7 +10,7 @@ class SimpleSignUpForm(UserCreationForm):
     ]
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect, initial='student', label="I am a")
     full_name = forms.CharField(max_length=100, required=True)
-    dob = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
+    dob = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}), label="Date of Birth")
     phone_number = forms.CharField(max_length=15, required=True)
     email = forms.EmailField(required=True)
     address = forms.CharField(max_length=255, required=True)

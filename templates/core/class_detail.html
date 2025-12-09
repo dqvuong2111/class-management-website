@@ -37,7 +37,7 @@
                 <!-- Auth Buttons -->
                 <div class="hidden md:flex items-center gap-4">
                     {% if user.is_authenticated %}
-                         <span class="text-sm font-medium text-gray-600">Hi, {{ user.username }}</span>
+                         <span class="text-sm font-medium text-gray-600">Hi, {{ user_display_name|default:user.username }}</span>
                         {% if user.is_staff %}
                              <a href="{% url 'dashboard:dashboard' %}" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Dashboard</a>
                         {% elif user.teacher %}

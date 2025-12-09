@@ -143,19 +143,184 @@ def student_qr_scan_view(request, token):
     messages.success(request, f"Attendance marked Present for {session.clazz.class_name} on {session.date}")
     return redirect('dashboard:student_dashboard')
 
+def get_display_name(user):
+    """
+    Returns the full name of the user based on their role (Student, Teacher, Staff),
+    or their username if no role is found.
+    """
+    if not user.is_authenticated:
+        return ""
+    
+    if hasattr(user, 'student'):
+        return user.student.full_name
+    
+    if hasattr(user, 'teacher'):
+        return user.teacher.full_name
+        
+    if hasattr(user, 'staff'):
+        return user.staff.full_name
+        
+    return user.username
+
 @login_required
 def messages_view(request):
     user = request.user
     from django.contrib.auth.models import User
     
-    # 1. Identify contacts (people user has exchanged messages with)
+    # Data structure to hold unique contacts: {user_id: UserObject}
+    # We'll attach 'role_label' and 'class_names' (set) to these objects
+    contacts_map = {}
+
+    def get_or_create_contact(u):
+        if u.pk not in contacts_map:
+            u.class_names = set()
+            u.role_label = "User" # Default
+            contacts_map[u.pk] = u
+        return contacts_map[u.pk]
+
+    # --- 1. Populate from Class Relationships ---
+    if hasattr(user, 'student'):
+        # User is a Student
+        student = user.student
+        enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz', 'clazz__teacher', 'clazz__teacher__user')
+        
+        for enrollment in enrollments:
+            clazz = enrollment.clazz
+            c_name = clazz.class_name
+            
+            # Add Teacher
+            if clazz.teacher and clazz.teacher.user:
+                t_user = clazz.teacher.user
+                contact = get_or_create_contact(t_user)
+                contact.role_label = "Teacher"
+                contact.class_names.add(c_name)
+            
+            # Add Classmates
+            classmates = Student.objects.filter(enrollments__clazz=clazz, enrollments__status='approved').exclude(pk=student.pk).select_related('user')
+            for cm in classmates:
+                if cm.user:
+                    contact = get_or_create_contact(cm.user)
+                    contact.role_label = "Student"
+                    contact.class_names.add(c_name)
+
+    elif hasattr(user, 'teacher'):
+        # User is a Teacher
+        teacher = user.teacher
+        classes = Clazz.objects.filter(teacher=teacher)
+        
+        for clazz in classes:
+            c_name = clazz.class_name
+            students = Student.objects.filter(enrollments__clazz=clazz, enrollments__status='approved').select_related('user')
+            for s in students:
+                if s.user:
+                    contact = get_or_create_contact(s.user)
+                    contact.role_label = "Student"
+                    contact.class_names.add(c_name)
+
+    # --- 2. Populate from Message History ---
     received_ids = Message.objects.filter(recipient=user).values_list('sender_id', flat=True)
     sent_ids = Message.objects.filter(sender=user).values_list('recipient_id', flat=True)
-    contact_ids = set(received_ids) | set(sent_ids)
+    history_ids = set(received_ids) | set(sent_ids)
     
-    contacts = User.objects.filter(id__in=contact_ids)
+    history_users = User.objects.filter(id__in=history_ids)
+    for h_user in history_users:
+        if h_user.pk not in contacts_map:
+            contact = get_or_create_contact(h_user)
+            # Try to infer role if not already set by class logic
+            if hasattr(h_user, 'teacher'):
+                contact.role_label = "Teacher"
+            elif hasattr(h_user, 'student'):
+                contact.role_label = "Student"
+            elif h_user.is_staff:
+                contact.role_label = "Staff"
+            # No class names for pure history contacts (unless we want to fetch them, but spec implies showing "class" for class relations)
     
-    # 2. Handle specific chat selection
+    # --- 3. Search Functionality ---
+    search_query = request.GET.get('search_user')
+    search_role = request.GET.get('search_role')
+    
+    # If searching, we might need to fetch users NOT in contacts_map yet
+    if search_query or search_role:
+        search_results = User.objects.exclude(pk=user.pk)
+        
+        if search_query:
+            # We need to filter based on related models, but not all users have all related models.
+            # We can use Q objects to check for existence AND match.
+            # However, simpler approach: Filter by username OR (student__full_name) OR (teacher__full_name) OR (staff__full_name)
+            # The error "Cannot resolve keyword 'staff'" implies 'staff' related name might be missing or different.
+            # Checking models.py: Staff model does not have 'user' field linked! It inherits from Person but no OneToOne to User.
+            # Wait, let's re-read models.py. 
+            # Teacher has user = OneToOneField. Student has user = OneToOneField.
+            # Staff has NO user field in the provided models.py content!
+            # Ah, looking at models.py again:
+            # class Staff(Person): ... no user field.
+            # But earlier code used user.staff.
+            # If Staff doesn't have a user field, we can't search Users by Staff fields directly via ORM if they aren't linked.
+            # Let's assume for now we only search Student and Teacher if Staff is not linked.
+            # OR, maybe I missed it. Let's check if 'staff' is actually a related name on User. 
+            # Django User model doesn't have 'staff' unless we added it or a OneToOne defined it.
+            # The error confirms 'staff' is not a field on User.
+            
+            # SAFE SEARCH: Filter by username first.
+            # Then optionally filter by student/teacher if they exist.
+            
+            query_filter = Q(username__icontains=search_query)
+            
+            # Check if 'student' relation exists (it should based on models)
+            query_filter |= Q(student__full_name__icontains=search_query)
+            
+            # Check if 'teacher' relation exists
+            query_filter |= Q(teacher__full_name__icontains=search_query)
+            
+            # For Staff, since the model shows no user link, we can't search User via staff__full_name.
+            # Unless there's a different relation or I missed something. 
+            # I will exclude staff search for now to fix the crash, or just search by username.
+            # If user.is_staff is used for "Staff" role, we can search by username for them.
+            
+            search_results = search_results.filter(query_filter)
+        
+        if search_role:
+            if search_role == 'student':
+                search_results = search_results.filter(student__isnull=False)
+            elif search_role == 'teacher':
+                search_results = search_results.filter(teacher__isnull=False)
+            elif search_role == 'staff':
+                search_results = search_results.filter(is_staff=True)
+        
+        # Limit results
+        search_results = search_results.distinct()[:50]
+        
+        # Re-build contacts list based on search results? 
+        # Or just filter the existing map AND add new search hits?
+        # The prompt implies "left sidebar will ... show all ... to choose".
+        # Usually search *filters* the list. But if I search for someone new (e.g. admin), they should appear.
+        
+        # Strategy: Clear map if search is active? Or Filter? 
+        # Let's create a new list for search results, enriching them from the map if they exist there.
+        final_contacts = []
+        for res in search_results:
+            if res.pk in contacts_map:
+                final_contacts.append(contacts_map[res.pk])
+            else:
+                # New find
+                res.class_names = set()
+                # Infer role
+                if hasattr(res, 'teacher'):
+                    res.role_label = "Teacher"
+                elif hasattr(res, 'student'):
+                    res.role_label = "Student"
+                elif res.is_staff:
+                    res.role_label = "Staff"
+                else:
+                    res.role_label = "User"
+                final_contacts.append(res)
+        contacts = final_contacts
+        
+    else:
+        # No search: Show all collected contacts
+        contacts = list(contacts_map.values())
+
+    # --- 4. Handle Specific Chat Selection ---
     chat_username = request.GET.get('chat_with')
     active_contact = None
     messages_list = []
@@ -169,7 +334,85 @@ def messages_view(request):
         
         # Mark as read
         Message.objects.filter(recipient=user, sender=active_contact, is_read=False).update(is_read=True)
+        
+        # Ensure active contact is in the list
+        found = False
+        for c in contacts:
+            if c.pk == active_contact.pk:
+                found = True
+                break
+        if not found:
+            # Add active contact to top
+            if active_contact.pk in contacts_map:
+                contacts.insert(0, contacts_map[active_contact.pk])
+            else:
+                active_contact.class_names = set()
+                if hasattr(active_contact, 'teacher'):
+                    active_contact.role_label = "Teacher"
+                elif hasattr(active_contact, 'student'):
+                    active_contact.role_label = "Student"
+                elif active_contact.is_staff:
+                    active_contact.role_label = "Staff"
+                else:
+                    active_contact.role_label = "User"
+                contacts.insert(0, active_contact)
+
+    # --- 5. Final Formatting & Sorting for Display ---
+    for contact in contacts:
+        contact.display_name = get_display_name(contact)
+        
+        # Format Class Label
+        if hasattr(contact, 'class_names') and contact.class_names:
+            # Sort for consistency
+            sorted_classes = sorted(list(contact.class_names))
+            if len(sorted_classes) > 2:
+                contact.class_label = f"{', '.join(sorted_classes[:2])} +{len(sorted_classes)-2}"
+            else:
+                contact.class_label = ", ".join(sorted_classes)
+        else:
+            contact.class_label = ""
+            
+        # Fallback subtitle
+        if contact.class_label:
+            contact.display_subtitle = f"{contact.role_label} • {contact.class_label}"
+        else:
+            contact.display_subtitle = f"{contact.role_label} • {contact.username}"
+
+        # Get Last Message & Unread Status
+        last_msg = Message.objects.filter(
+            Q(sender=user, recipient=contact) | 
+            Q(sender=contact, recipient=user)
+        ).order_by('-created_at').first()
+        
+        contact.last_message_time = last_msg.created_at if last_msg else None
+        
+        # Check for unread messages FROM this contact
+        contact.has_unread = Message.objects.filter(
+            sender=contact, 
+            recipient=user, 
+            is_read=False
+        ).exists()
+
+    # Sort contacts: Unread first, then by Last Message Time (newest first)
+    # We use a tuple for sort key: (has_unread (True > False), last_message_time (Date > None))
+    # Python sorts False < True, so reverse=True puts True first.
+    # For datetime, newer is "greater", so reverse=True puts newer first.
+    # We need to handle None for last_message_time safely.
     
+    def contact_sort_key(c):
+        # 1. Has Unread (1 if True, 0 if False)
+        k1 = 1 if getattr(c, 'has_unread', False) else 0
+        
+        # 2. Last Message Time (timestamp)
+        # Use a very old date for None so they drop to bottom
+        k2 = getattr(c, 'last_message_time', datetime.datetime.min)
+        if k2 is None: # explicit check if getattr returned None somehow or if value is None
+             k2 = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+        
+        return (k1, k2)
+
+    contacts.sort(key=contact_sort_key, reverse=True)
+
     if request.method == 'POST':
         form = MessageForm(request.POST)
         if form.is_valid():
@@ -185,21 +428,26 @@ def messages_view(request):
         initial = {'recipient_username': active_contact.username} if active_contact else {}
         form = MessageForm(initial=initial)
 
-    # Determine base template
-    if hasattr(user, 'teacher'):
-        base_template = 'dashboard/teacher_base_dashboard.html'
-    elif hasattr(user, 'student'):
-        base_template = 'dashboard/student_base_dashboard.html'
-    else:
-        base_template = 'dashboard/base_dashboard.html'
-        
-    return render(request, 'dashboard/messages.html', {
+    # Determine base template and context
+    context = {
         'contacts': contacts,
         'active_contact': active_contact,
         'messages_list': messages_list,
         'form': form,
-        'base_template': base_template
-    })
+    }
+
+    if hasattr(user, 'teacher'):
+        base_template = 'dashboard/teacher_base_dashboard.html'
+        context['teacher'] = user.teacher
+    elif hasattr(user, 'student'):
+        base_template = 'dashboard/student_base_dashboard.html'
+        context['student'] = user.student
+    else:
+        base_template = 'dashboard/base_dashboard.html'
+    
+    context['base_template'] = base_template
+        
+    return render(request, 'dashboard/messages.html', context)
 
 def is_staff_user(user):
     return user.is_staff
@@ -684,11 +932,18 @@ def student_dashboard_view(request):
 
 @login_required
 def student_courses_view(request):
+    try:
+        student = request.user.student
+    except Student.DoesNotExist:
+        messages.error(request, "You are not registered as a student.")
+        return redirect('home')
+
     # Fetch all classes (can be optimized to exclude enrolled ones)
     classes = Clazz.objects.all().order_by('class_name').select_related('teacher', 'class_type', 'schedule')
     
     return render(request, 'dashboard/student_courses.html', {
-        'classes': classes
+        'classes': classes,
+        'student': student
     })
 
 @login_required

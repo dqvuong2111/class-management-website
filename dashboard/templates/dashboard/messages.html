@@ -13,9 +13,19 @@
         <!-- Sidebar / Contact List -->
         <div class="w-full md:w-80 border-r border-gray-200 flex flex-col {% if active_contact %}hidden md:flex{% endif %}">
             <div class="p-4 border-b border-gray-200">
-                <form method="get" class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"></i>
-                    <input type="text" placeholder="Search people..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                <form method="get" class="flex gap-2">
+                    <div class="relative flex-1">
+                        <input type="text" name="search_user" value="{{ request.GET.search_user|default:'' }}" placeholder="Search name..." class="w-full pl-4 pr-10 py-2 bg-gray-50 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors">
+                            <i data-lucide="search" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                    <select name="search_role" class="py-2 px-2 bg-gray-50 border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        <option value="student" {% if request.GET.search_role == 'student' %}selected{% endif %}>Student</option>
+                        <option value="teacher" {% if request.GET.search_role == 'teacher' %}selected{% endif %}>Teacher</option>
+                        <option value="staff" {% if request.GET.search_role == 'staff' %}selected{% endif %}>Staff</option>
+                    </select>
                 </form>
             </div>
             
@@ -23,12 +33,15 @@
                 {% for contact in contacts %}
                 <a href="?chat_with={{ contact.username }}" class="block p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 {% if active_contact.username == contact.username %}bg-indigo-50 border-indigo-100{% endif %}">
                     <div class="flex items-center gap-3">
+                        {% if contact.has_unread %}
+                            <div class="h-2.5 w-2.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                        {% endif %}
                         <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
-                            {{ contact.username|slice:":1"|upper }}
+                            {{ contact.display_name|slice:":1"|upper }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-gray-900 truncate">{{ contact.username }}</h4>
-                            <p class="text-xs text-gray-500 truncate">Click to chat</p>
+                            <h4 class="text-sm font-semibold text-gray-900 truncate">{{ contact.display_name }}</h4>
+                            <p class="text-xs text-gray-500 truncate">{{ contact.display_subtitle }}</p>
                         </div>
                     </div>
                 </a>
@@ -96,10 +109,7 @@
                         <input type="hidden" name="subject" value="Chat Message"> <!-- Default subject for chat mode -->
                         
                         <div class="flex-1 relative">
-                            <textarea name="body" rows="1" class="w-full pl-4 pr-12 py-3 bg-gray-50 border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none max-h-32 text-sm" placeholder="Type a message..."></textarea>
-                            <button type="button" class="absolute right-3 bottom-2.5 text-gray-400 hover:text-gray-600">
-                                <i data-lucide="paperclip" class="h-5 w-5"></i>
-                            </button>
+                            <textarea name="body" rows="1" class="w-full pl-4 pr-4 py-3 bg-gray-50 border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none max-h-32 text-sm" placeholder="Type a message..."></textarea>
                         </div>
                         <button type="submit" class="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm flex-shrink-0">
                             <i data-lucide="send" class="h-5 w-5"></i>
