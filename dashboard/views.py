@@ -6,6 +6,7 @@ from django import forms
 import datetime
 import calendar
 from django.urls import reverse # Added for generating URLs in views
+import uuid # Added uuid import
 from core.models import (
     Clazz, Teacher, Student, Staff, Enrollment, ClassType, Schedule, Attendance,
     Material, Announcement, Assignment, AssignmentSubmission, Feedback, Message,
@@ -13,7 +14,6 @@ from core.models import (
 )
 from .forms import ClassForm, TeacherForm, StudentForm, StaffForm, EnrollmentForm, ClassTypeForm, ScheduleForm, AttendanceForm, MaterialForm, AnnouncementForm, AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm, AssignmentCreateForm, FeedbackForm, MessageForm
 from django.db.models import Count, Q, Avg
-import uuid
 
 # ... (existing views)
 
@@ -93,11 +93,8 @@ def teacher_qr_generate_view(request):
         return redirect('home')
     
     teacher = request.user.teacher
+    classes = Clazz.objects.filter(teacher=teacher)
     today = datetime.date.today()
-    
-    # Get today's classes
-    # (Simplified logic: showing all active classes for selection, or could filter by schedule)
-    classes = Clazz.objects.filter(teacher=teacher, start_date__lte=today, end_date__gte=today)
     
     qr_data = None
     selected_class = None
@@ -124,30 +121,50 @@ def teacher_qr_generate_view(request):
 
 @login_required
 def student_qr_scan_view(request, token):
+    if not hasattr(request.user, 'student'):
+        return render(request, 'dashboard/student_qr_success.html', {
+            'success': False,
+            'error_message': "Access denied. Students only."
+        })
+
+    student = request.user.student
+    
+    # Find Session
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
-        messages.error(request, "Student account required.")
-        return redirect('accounts:login')
+        session = AttendanceSession.objects.get(token=token, is_active=True)
+    except AttendanceSession.DoesNotExist:
+        return render(request, 'dashboard/student_qr_success.html', {
+            'success': False,
+            'error_message': "Invalid or expired session."
+        })
+
+    # Check expiration (e.g. valid for same day)
+    if session.date != datetime.date.today():
+         return render(request, 'dashboard/student_qr_success.html', {
+            'success': False,
+            'error_message': "This session has expired."
+        })
         
-    session = get_object_or_404(AttendanceSession, token=token)
-    
-    if not session.is_active:
-        messages.error(request, "This QR code has expired.")
-        return redirect('dashboard:student_dashboard')
-        
-    # Check enrollment
-    enrollment = get_object_or_404(Enrollment, student=student, clazz=session.clazz, status='approved')
-    
-    # Mark Present
+    # Check Enrollment
+    enrollment = Enrollment.objects.filter(student=student, clazz=session.clazz, status='approved').first()
+    if not enrollment:
+        return render(request, 'dashboard/student_qr_success.html', {
+            'success': False,
+            'error_message': "You are not enrolled in this class."
+        })
+
+    # Record Attendance
     Attendance.objects.update_or_create(
         enrollment=enrollment,
         date=session.date,
         defaults={'status': 'Present'}
     )
     
-    messages.success(request, f"Attendance marked Present for {session.clazz.class_name} on {session.date}")
-    return redirect('dashboard:student_dashboard')
+    return render(request, 'dashboard/student_qr_success.html', {
+        'success': True,
+        'clazz': session.clazz,
+        'date': session.date
+    })
 
 def get_display_name(user):
     """
@@ -479,6 +496,9 @@ def admin_dashboard_view(request):
     total_classes = Clazz.objects.count()
     total_students = Student.objects.count()
     total_teachers = Teacher.objects.count()
+    
+    # Get pending enrollments for the widget
+    pending_enrollments = Enrollment.objects.filter(status='pending').select_related('student', 'clazz').order_by('-enrollment_date')[:5]
     pending_requests_count = Enrollment.objects.filter(status='pending').count()
 
     context = {
@@ -488,6 +508,7 @@ def admin_dashboard_view(request):
         'total_students': total_students,
         'total_teachers': total_teachers,
         'pending_requests_count': pending_requests_count,
+        'pending_enrollments': pending_enrollments,
     }
     return render(request, 'dashboard/dashboard.html', context)
 
@@ -1209,19 +1230,12 @@ def assign_classes_to_teacher_view(request, pk):
         selected_class_ids = request.POST.getlist('classes')
         
         # 1. Unassign classes that were previously assigned but not selected anymore
-        # (Only if we want this behavior. It's safer to only ADD assignments, but "Assign Classes" usually implies "Manage Assignments")
-        # Let's assume we are managing the full set of classes for this teacher.
-        current_classes = Clazz.objects.filter(teacher=teacher)
-        for clazz in current_classes:
-            if str(clazz.pk) not in selected_class_ids:
-                clazz.teacher = None
-                clazz.save()
+        # We filter classes belonging to this teacher, EXCLUDING the ones currently selected.
+        # These are the ones we want to remove.
+        Clazz.objects.filter(teacher=teacher).exclude(pk__in=selected_class_ids).update(teacher=None)
         
-        # 2. Assign selected classes
-        for class_id in selected_class_ids:
-            clazz = get_object_or_404(Clazz, pk=class_id)
-            clazz.teacher = teacher
-            clazz.save()
+        # 2. Assign selected classes (this will overwrite any previous teacher)
+        Clazz.objects.filter(pk__in=selected_class_ids).update(teacher=teacher)
             
         messages.success(request, f"Classes assigned to {teacher.full_name} successfully!")
         return redirect('dashboard:manage_teachers')
@@ -1257,7 +1271,7 @@ def manage_enrollments_view(request):
 @login_required
 @user_passes_test(is_staff_user, login_url="accounts:login")
 def manage_requests_view(request):
-    requests = Enrollment.objects.filter(status='pending').select_related('student', 'clazz')
+    requests = Enrollment.objects.filter(status='pending').select_related('student', 'clazz').order_by('-enrollment_date')
     return render(request, 'dashboard/manage_requests.html', {'requests': requests})
 
 @login_required
@@ -1747,4 +1761,209 @@ def student_class_detail_view(request, class_pk):
         'materials': materials,
         'announcements': announcements,
         'assignments': assignments,
+    })
+
+@login_required
+def teacher_qr_generate_view(request):
+    if not hasattr(request.user, 'teacher'):
+        return redirect('home')
+    
+    teacher = request.user.teacher
+    classes = Clazz.objects.filter(teacher=teacher)
+    today = datetime.date.today()
+    
+    context = {
+        'classes': classes,
+        'selected_class': None,
+        'qr_data': None,
+        'today': today
+    }
+    
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        if class_id:
+            try:
+                selected_class = Clazz.objects.get(pk=class_id, teacher=teacher)
+                
+                # Deactivate old sessions for this class/day to prevent clutter
+                AttendanceSession.objects.filter(clazz=selected_class, date=today).update(is_active=False)
+                
+                # Create New Session
+                token = uuid.uuid4().hex
+                session = AttendanceSession.objects.create(
+                    clazz=selected_class,
+                    date=today,
+                    token=token,
+                    is_active=True
+                )
+                
+                # Generate Scan URL
+                # NOTE: This uses the hostname accessed by the teacher. 
+                # Teacher MUST access via IP (192.168.x.x) for phone scanning to work!
+                scan_url = request.build_absolute_uri(f"/dashboard/student/qr/scan/{token}/")
+                
+                context.update({
+                    'selected_class': selected_class,
+                    'qr_data': scan_url, # Pass URL to frontend
+                    'session_token': token
+                })
+                
+                messages.success(request, f"Attendance session started for {selected_class.class_name}")
+                
+            except Clazz.DoesNotExist:
+                messages.error(request, "Invalid class selected.")
+
+    return render(request, 'dashboard/teacher_qr_generate.html', context)
+
+@login_required
+def teacher_schedule_view(request):
+    if not hasattr(request.user, 'teacher'):
+        return redirect('home')
+        
+    teacher = request.user.teacher
+    
+    # Get params
+    today = datetime.date.today()
+    try:
+        month = int(request.GET.get('month', today.month))
+        year = int(request.GET.get('year', today.year))
+    except ValueError:
+        month = today.month
+        year = today.year
+        
+    # Calculate prev/next
+    first_date = datetime.date(year, month, 1)
+    _, num_days = calendar.monthrange(year, month)
+    last_date = datetime.date(year, month, num_days)
+    
+    prev_month = (first_date - datetime.timedelta(days=1)).month
+    prev_year = (first_date - datetime.timedelta(days=1)).year
+    next_month = (last_date + datetime.timedelta(days=1)).month
+    next_year = (last_date + datetime.timedelta(days=1)).year
+    
+    current_month_name = calendar.month_name[month]
+    
+    # Get Classes
+    classes = Clazz.objects.filter(teacher=teacher).select_related('schedule')
+    
+    # Build Calendar
+    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
+    calendar_data = []
+    
+    for week in cal.monthdayscalendar(year, month):
+        week_data = []
+        for day in week:
+            day_data = {
+                'day': day,
+                'is_today': (day == today.day and month == today.month and year == today.year),
+                'events': []
+            }
+            
+            if day != 0:
+                current_date = datetime.date(year, month, day)
+                day_name = current_date.strftime("%A") # e.g. "Monday"
+                
+                for clazz in classes:
+                    # Check date range
+                    if clazz.start_date <= current_date <= clazz.end_date:
+                        try:
+                            if hasattr(clazz, 'schedule'):
+                                schedule = clazz.schedule
+                                # Check day of week (string "Monday, Wednesday")
+                                if day_name in schedule.day_of_week:
+                                    day_data['events'].append({
+                                        'time': f"{schedule.start_time.strftime('%H:%M')} - {schedule.end_time.strftime('%H:%M')}",
+                                        'class_name': clazz.class_name,
+                                        'room': clazz.room
+                                    })
+                        except Schedule.DoesNotExist:
+                            pass
+                            
+            week_data.append(day_data)
+        calendar_data.append(week_data)
+        
+    return render(request, 'dashboard/teacher_schedule.html', {
+        'calendar_data': calendar_data,
+        'current_month_name': current_month_name,
+        'current_year': year,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+    })
+
+@login_required
+def student_schedule_view(request):
+    if not hasattr(request.user, 'student'):
+        return redirect('home')
+        
+    student = request.user.student
+    
+    # Get params
+    today = datetime.date.today()
+    try:
+        month = int(request.GET.get('month', today.month))
+        year = int(request.GET.get('year', today.year))
+    except ValueError:
+        month = today.month
+        year = today.year
+        
+    # Calculate prev/next
+    first_date = datetime.date(year, month, 1)
+    _, num_days = calendar.monthrange(year, month)
+    last_date = datetime.date(year, month, num_days)
+    
+    prev_month = (first_date - datetime.timedelta(days=1)).month
+    prev_year = (first_date - datetime.timedelta(days=1)).year
+    next_month = (last_date + datetime.timedelta(days=1)).month
+    next_year = (last_date + datetime.timedelta(days=1)).year
+    
+    current_month_name = calendar.month_name[month]
+    
+    # Get Enrolled Classes
+    enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz', 'clazz__schedule')
+    classes = [e.clazz for e in enrollments]
+    
+    # Build Calendar
+    cal = calendar.Calendar(firstweekday=0)
+    calendar_data = []
+    
+    for week in cal.monthdayscalendar(year, month):
+        week_data = []
+        for day in week:
+            day_data = {
+                'day': day,
+                'is_today': (day == today.day and month == today.month and year == today.year),
+                'events': []
+            }
+            
+            if day != 0:
+                current_date = datetime.date(year, month, day)
+                day_name = current_date.strftime("%A")
+                
+                for clazz in classes:
+                    if clazz.start_date <= current_date <= clazz.end_date:
+                        try:
+                            if hasattr(clazz, 'schedule'):
+                                schedule = clazz.schedule
+                                if day_name in schedule.day_of_week:
+                                    day_data['events'].append({
+                                        'time': f"{schedule.start_time.strftime('%H:%M')} - {schedule.end_time.strftime('%H:%M')}",
+                                        'class_name': clazz.class_name,
+                                        'room': clazz.room
+                                    })
+                        except Schedule.DoesNotExist:
+                            pass
+                            
+            week_data.append(day_data)
+        calendar_data.append(week_data)
+        
+    return render(request, 'dashboard/student_schedule.html', {
+        'calendar_data': calendar_data,
+        'current_month_name': current_month_name,
+        'current_year': year,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
     })

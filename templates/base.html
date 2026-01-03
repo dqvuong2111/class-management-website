@@ -17,8 +17,9 @@
 
     <!-- Toast Messages Container -->
     {% if messages %}
+    {% for message in messages %}
+    {% if forloop.first %}
     <div id="toast-container" class="fixed top-24 right-4 z-[100] space-y-2 max-w-sm">
-        {% for message in messages %}
         <div class="toast-message p-4 rounded-xl shadow-lg border backdrop-blur-sm flex items-center gap-3 animate-slide-in {% if message.tags == 'error' %}bg-red-50/90 border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50/90 border-green-200 text-green-700{% else %}bg-blue-50/90 border-blue-200 text-blue-700{% endif %}">
             {% if message.tags == 'success' %}
             <i data-lucide="check-circle" class="h-5 w-5 text-green-500 shrink-0"></i>
@@ -32,8 +33,9 @@
                 <i data-lucide="x" class="h-4 w-4"></i>
             </button>
         </div>
-        {% endfor %}
     </div>
+    {% endif %}
+    {% endfor %}
     {% endif %}
 
     <!-- Navigation -->

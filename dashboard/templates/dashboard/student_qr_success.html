@@ -1,0 +1,27 @@
+{% extends 'dashboard/student_base_dashboard.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto text-center mt-20 p-8 rounded-3xl bg-white shadow-xl border border-gray-100">
+    {% if success %}
+        <div class="h-24 w-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+            <i data-lucide="check" class="h-12 w-12 text-emerald-600"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Success!</h1>
+        <p class="text-gray-600 mb-8">Attendance marked for <span class="font-bold text-emerald-600">{{ clazz.class_name }}</span></p>
+        <div class="bg-emerald-50 rounded-xl p-4 mb-6">
+            <p class="text-sm text-emerald-800 font-medium">Session Date</p>
+            <p class="text-lg font-bold text-emerald-900">{{ date }}</p>
+        </div>
+    {% else %}
+        <div class="h-24 w-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="x" class="h-12 w-12 text-red-600"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Error</h1>
+        <p class="text-gray-600 mb-8">{{ error_message }}</p>
+    {% endif %}
+
+    <a href="{% url 'dashboard:student_dashboard' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30">
+        Back to Dashboard
+    </a>
+</div>
+{% endblock %}

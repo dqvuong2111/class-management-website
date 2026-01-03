@@ -25,11 +25,7 @@ SECRET_KEY = 'django-insecure-#@hj9z4qqewyo*ultun&(%x^)n6bwt&-=-hkmzp)8%c7bg1@+d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',  # Tên miền cục bộ
-    '.onrender.com', # Cho phép tất cả các tên miền phụ của Render
-    'classmanagementproject.onrender.com' # Tên miền cụ thể của bạn
-]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -137,12 +133,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Trigger reload
 
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('WEB_HOST')
-
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS = [
-        RENDER_EXTERNAL_HOSTNAME,
-        '127.0.0.1',  # Luôn thêm localhost
-    ]
-else:
-    ALLOWED_HOSTS = ['127.0.0.1'] # Mặc định cho môi trường dev
+# RENDER_EXTERNAL_HOSTNAME = os.environ.get('WEB_HOST')
+# if RENDER_EXTERNAL_HOSTNAME:
+#     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)

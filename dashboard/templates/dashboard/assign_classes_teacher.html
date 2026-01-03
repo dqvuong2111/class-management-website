@@ -29,17 +29,17 @@
                         name="classes" 
                         value="{{ clazz.pk }}" 
                         class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        {% if clazz.teacher == teacher %}checked{% endif %}
+                        {% if clazz.teacher_id == teacher.pk %}checked{% endif %}
                     >
                 </div>
                 <div class="ml-4 flex-1">
                     <div class="flex justify-between">
                         <span class="font-medium text-gray-900">{{ clazz.class_name }}</span>
                         <span class="text-xs font-medium px-2 py-0.5 rounded 
-                            {% if clazz.teacher == teacher %}bg-green-100 text-green-700
-                            {% elif clazz.teacher %}bg-amber-100 text-amber-700
+                            {% if clazz.teacher_id == teacher.pk %}bg-green-100 text-green-700
+                            {% elif clazz.teacher_id %}bg-amber-100 text-amber-700
                             {% else %}bg-gray-100 text-gray-600{% endif %}">
-                            {% if clazz.teacher == teacher %}
+                            {% if clazz.teacher_id == teacher.pk %}
                                 Assigned to this teacher
                             {% elif clazz.teacher %}
                                 Assigned to {{ clazz.teacher.full_name }}
