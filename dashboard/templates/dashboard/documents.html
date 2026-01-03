@@ -1,46 +1,60 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Documents</h1>
-        <p class="text-gray-500">Access important school documents and policies.</p>
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-slate-600 via-gray-600 to-neutral-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 flex items-center gap-4">
+            <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                <i data-lucide="files" class="h-8 w-8 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold">Document Center</h1>
+                <p class="text-gray-200">Access and manage school policies and files</p>
+            </div>
+        </div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <!-- Table -->
+    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
-                <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                <thead class="bg-gray-50/50 text-gray-500 font-semibold border-b border-gray-100">
                     <tr>
-                        <th class="px-6 py-3 font-medium">Document Title</th>
-                        <th class="px-6 py-3 font-medium">Type</th>
-                        <th class="px-6 py-3 font-medium">Date Uploaded</th>
-                        <th class="px-6 py-3 font-medium text-right">Actions</th>
+                        <th class="px-6 py-4">Document Title</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Date Uploaded</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-50">
                     {% for doc in documents %}
-                    <tr class="hover:bg-gray-50 transition-colors">
+                    <tr class="hover:bg-gray-50 transition-colors group">
                         <td class="px-6 py-4 font-medium text-gray-900">
                              <div class="flex items-center gap-3">
-                                <i data-lucide="file-text" class="h-5 w-5 text-gray-400"></i>
+                                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                    <i data-lucide="file-text" class="h-5 w-5"></i>
+                                </div>
                                 {{ doc.title }}
                             </div>
                         </td>
                         <td class="px-6 py-4 text-gray-600">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-200">
-                                {{ doc.type }}
-                            </span>
+                            <span class="bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-1 rounded border border-gray-200 uppercase tracking-wide">{{ doc.type }}</span>
                         </td>
-                        <td class="px-6 py-4 text-gray-600">{{ doc.date }}</td>
+                        <td class="px-6 py-4 text-gray-600 text-xs font-mono">{{ doc.date }}</td>
                         <td class="px-6 py-4 text-right">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900 font-medium">Download</a>
+                            <a href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs hover:bg-indigo-100 transition-colors">
+                                <i data-lucide="download" class="h-3.5 w-3.5"></i> Download
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                            No documents available.
+                         <td colspan="4" class="px-6 py-16 text-center text-gray-500">
+                            <i data-lucide="folder-open" class="mx-auto h-12 w-12 text-gray-300 mb-3"></i>
+                            <h3 class="text-lg font-bold text-gray-900 mb-1">No Documents</h3>
+                            <p class="text-sm">There are currently no documents available.</p>
                         </td>
                     </tr>
                     {% endfor %}

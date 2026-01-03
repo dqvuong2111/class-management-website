@@ -1,116 +1,233 @@
-# EduManage - Class Management Website
+# 🎓 EduManage - Class Management System
 
-EduManage is a comprehensive web-based platform designed to streamline educational institution management. It serves students, teachers, and administrators with a modern, responsive interface and robust features for academic tracking, scheduling, and communication.
+A comprehensive web-based Class Management System built with Django, featuring modern UI design with Tailwind CSS. This platform enables educational institutions to manage students, teachers, classes, enrollments, assignments, and more.
 
-## Features
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
+![Django](https://img.shields.io/badge/Django-5.1+-green.svg)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-### 🎓 **For Students**
-*   **Dashboard:** View course progress, upcoming assignments, and announcements.
-*   **Course Enrollment:** Browse available courses and request enrollment.
-*   **Attendance Tracking:** Check attendance status and scan QR codes for instant check-in.
-*   **Gradebook:** View scores for mini-tests, midterms, and final exams.
-*   **Assignment Submission:** Submit homework and assignments directly through the portal.
-*   **Feedback:** Provide feedback on courses and instructors.
+---
 
-### 👩‍🏫 **For Teachers**
-*   **Class Management:** Create and manage classes, upload materials, and post announcements.
-*   **Grading:** Enter and update student grades efficiently.
-*   **Attendance:** Generate QR codes for sessions or manually mark attendance.
-*   **Assignments:** Create assignments, set due dates, and grade submissions.
-*   **Statistics:** View class performance analytics and identify students at risk.
+## 📖 Introduction
 
-### 🛠 **For Administrators (Staff)**
-*   **User Management:** Manage student, teacher, and staff accounts.
-*   **Course Management:** Oversee class types, schedules, and enrollments.
-*   **System Oversight:** Monitor platform statistics and handle enrollment requests.
+EduManage is a full-featured educational management platform designed for schools, training centers, and educational institutions. It provides separate dashboards for **Administrators**, **Teachers**, and **Students**, each with role-specific features and modern, responsive UI.
 
-## Tech Stack
+### Key Highlights
+- 🎨 Modern, colorful gradient UI design
+- 📱 Fully responsive across all devices
+- 🔐 Role-based access control (Admin, Teacher, Student)
+- 📊 Real-time statistics and analytics
+- 💬 Built-in messaging system
+- 📋 Assignment and grading management
+- 📅 Schedule and attendance tracking
 
-*   **Backend:** Django 5.0+ (Python)
-*   **Database:** Microsoft SQL Server (MSSQL)
-*   **Frontend:** HTML5, Tailwind CSS, JavaScript
-*   **Styling:** Custom CSS with modern animations and responsive design
+---
 
-## Prerequisites
+## 📁 Project Structure
 
-Before running the project, ensure you have the following installed:
+```
+ClassManagementWebsite/
+├── accounts/                   # User authentication app
+│   ├── templates/accounts/     # Login & Signup templates
+│   ├── forms.py               # Authentication forms
+│   ├── views.py               # Auth views
+│   └── urls.py                # Auth URL routing
+│
+├── core/                       # Core application
+│   ├── models.py              # Database models (Student, Teacher, Class, etc.)
+│   ├── views.py               # Public views (home, courses, features)
+│   ├── admin.py               # Django admin configuration
+│   └── management/commands/   # Custom management commands
+│
+├── dashboard/                  # Dashboard application
+│   ├── templates/dashboard/   # All dashboard templates
+│   │   ├── base_dashboard.html           # Admin base
+│   │   ├── teacher_base_dashboard.html   # Teacher base
+│   │   ├── student_base_dashboard.html   # Student base
+│   │   ├── sidebar.html                  # Admin sidebar
+│   │   ├── sidebar_teacher.html          # Teacher sidebar
+│   │   ├── sidebar_student.html          # Student sidebar
+│   │   └── ...                           # Feature-specific templates
+│   ├── views.py               # Dashboard views
+│   └── urls.py                # Dashboard URL routing
+│
+├── templates/                  # Global templates
+│   ├── base.html              # Base template with navbar/footer
+│   └── core/                  # Public page templates
+│       ├── home.html          # Homepage
+│       ├── class_list.html    # Course listing
+│       └── features.html      # Features page
+│
+├── static/                     # Static assets
+│   ├── css/custom.css         # Custom styles & dark mode
+│   └── images/                # App images (logo, defaults)
+│
+├── media/                      # User uploads
+│   ├── class_images/          # Course images
+│   ├── class_materials/       # Learning materials
+│   └── assignment_submissions/ # Student submissions
+│
+├── ClassManagementWebsite/     # Django project settings
+│   ├── settings.py            # Project configuration
+│   ├── urls.py                # Root URL routing
+│   └── wsgi.py                # WSGI configuration
+│
+├── manage.py                   # Django management script
+├── requirements.txt            # Python dependencies
+└── README.md                   # This file
+```
 
-1.  **Python 3.10+**: [Download Python](https://www.python.org/downloads/)
-2.  **Microsoft SQL Server**: [Download SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-3.  **ODBC Driver 17 for SQL Server**: Required for Django to connect to MSSQL. [Download Driver](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
+---
 
-## Installation & Setup
+## ✨ Features
 
-1.  **Clone the Repository** (if applicable) or navigate to the project folder.
+### 🔐 Authentication
+- User registration and login
+- Role-based access (Admin, Teacher, Student)
+- Secure session management
 
-2.  **Create a Virtual Environment**
-    ```bash
-    python -m venv venv
-    ```
+### 👨‍💼 Admin Portal
+- **Dashboard** - System overview with statistics
+- **Manage Students** - Add, edit, delete students
+- **Manage Teachers** - Teacher management
+- **Manage Classes** - Create and configure courses
+- **Manage Enrollments** - Handle student enrollments
+- **Manage Requests** - Approve/reject enrollment requests
+- **Enter Grades** - Input student grades
+- **Statistics** - View analytics and reports
+- **Messages** - Communication hub
 
-3.  **Activate the Virtual Environment**
-    *   **Windows:**
-        ```bash
-        .\venv\Scripts\activate
-        ```
-    *   **macOS/Linux:**
-        ```bash
-        source venv/bin/activate
-        ```
+### 👨‍🏫 Teacher Portal
+- **Dashboard** - Personal teaching overview
+- **My Classes** - View assigned classes
+- **Assignments** - Create and manage assignments
+- **QR Attendance** - Generate QR codes for attendance
+- **Schedule** - Calendar view of teaching schedule
+- **Statistics** - Class performance analytics
+- **Feedback** - View student feedback
+- **Messages** - Communicate with students
 
-4.  **Install Dependencies**
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 👨‍🎓 Student Portal
+- **Dashboard** - Personal learning overview
+- **My Courses** - Enrolled courses list
+- **Browse Courses** - Explore available classes
+- **Schedule** - Weekly class schedule
+- **Grades & Achievements** - View academic performance
+- **Pending Requests** - Track enrollment status
+- **Submit Assignments** - Upload homework
+- **Give Feedback** - Rate courses and teachers
+- **Messages** - Chat with teachers
 
-5.  **Configure the Database**
-    Open `ClassManagementWebsite/settings.py` and locate the `DATABASES` section. Update the `NAME`, `USER`, `PASSWORD`, and `HOST` to match your SQL Server configuration.
+### 🎨 UI/UX Features
+- Modern gradient design language
+- Dark mode support
+- Real-time search functionality
+- Toast notifications
+- Responsive mobile design
+- Animated interactions
 
-    ```python
-    DATABASES = {
-        'default': {
-            'ENGINE': 'mssql',
-            'NAME': 'YourDatabaseName',
-            'USER': 'YourUsername',
-            'PASSWORD': 'YourPassword',
-            'HOST': 'localhost',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',
-            },
-        }
-    }
-    ```
+---
 
-6.  **Apply Migrations**
-    Create the necessary database tables:
-    ```bash
-    python manage.py migrate
-    ```
+## 🚀 Getting Started
 
-7.  **Seed Initial Data (Optional)**
-    Populate the database with sample data for testing:
-    ```bash
-    python manage.py seed_data
-    ```
+### Prerequisites
+- Python 3.12 or higher
+- pip (Python package manager)
+- Git
 
-8.  **Run the Development Server**
-    ```bash
-    python manage.py runserver
-    ```
+### Installation
 
-9.  **Access the Application**
-    Open your browser and navigate to: `http://127.0.0.1:8000/`
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ClassManagementWebsite.git
+   cd ClassManagementWebsite
+   ```
 
-## Project Structure
+2. **Create a virtual environment**
+   ```bash
+   python -m venv venv
+   ```
 
-*   `accounts/`: Authentication (Login, Signup) logic.
-*   `core/`: Core models (Student, Teacher, Class) and main views.
-*   `dashboard/`: The main functional area for all user roles (Student, Teacher, Admin).
-*   `templates/`: HTML templates (now unified with `base.html` inheritance).
-*   `static/`: CSS, JavaScript, and images.
-*   `media/`: User-uploaded content (assignments, materials, class images).
+3. **Activate the virtual environment**
+   
+   - **Windows:**
+     ```bash
+     venv\Scripts\activate
+     ```
+   - **macOS/Linux:**
+     ```bash
+     source venv/bin/activate
+     ```
 
-## License
+4. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-This project is for educational purposes.
+5. **Run database migrations**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Create a superuser (Admin account)**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. **(Optional) Load sample data**
+   ```bash
+   python manage.py seed_data
+   ```
+
+8. **Start the development server**
+   ```bash
+   python manage.py runserver
+   ```
+
+9. **Access the application**
+   - Homepage: http://127.0.0.1:8000/
+   - Admin Panel: http://127.0.0.1:8000/admin/
+   - Login: http://127.0.0.1:8000/accounts/login/
+
+---
+
+## 🔑 Default Accounts (after seeding)
+
+| Role    | Username | Password  |
+|---------|----------|-----------|
+| Admin   | admin    | admin123  |
+| Teacher | teacher1 | teacher123|
+| Student | student1 | student123|
+
+---
+
+## 🛠️ Technologies Used
+
+- **Backend:** Django 5.1+
+- **Frontend:** HTML5, TailwindCSS 3.x, JavaScript
+- **Database:** SQLite (development) / PostgreSQL (production)
+- **Icons:** Lucide Icons
+- **Fonts:** Google Fonts (Outfit)
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📧 Contact
+
+For questions or support, please open an issue in the GitHub repository.
+
+---
+
+Made with ❤️ for Education

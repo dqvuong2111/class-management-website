@@ -47,7 +47,8 @@ def class_list(request):
     if query:
         all_classes = all_classes.filter(
             Q(class_name__icontains=query) |
-            Q(description__icontains=query) |
+            Q(class_type__description__icontains=query) |
+            Q(class_type__code__icontains=query) |
             Q(teacher__full_name__icontains=query)
         )
     

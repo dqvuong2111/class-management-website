@@ -6,22 +6,31 @@
 {% block content %}
 <div class="space-y-8">
     <!-- Header -->
-    <div>
-        <h2 class="text-2xl font-bold text-gray-900">Grades & Achievements</h2>
-        <p class="text-gray-500">Track your academic performance</p>
+    <div class="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-8 text-white">
+        <div class="relative z-10 flex items-center gap-4">
+            <div class="h-14 w-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                <i data-lucide="award" class="h-7 w-7"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-extrabold">Grades & Achievements</h2>
+                <p class="text-emerald-100">Track your academic performance across all courses</p>
+            </div>
+        </div>
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
     </div>
 
     <div class="grid grid-cols-1 gap-8">
         {% for enrollment in enrollments %}
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center flex-wrap gap-4">
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden hover:shadow-xl transition-all">
+            <!-- Course Header -->
+            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex justify-between items-center flex-wrap gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-xl bg-white border border-gray-200 p-1 shadow-sm">
+                    <div class="h-14 w-14 rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-500 p-0.5 shadow-lg shadow-emerald-500/30">
                         {% if enrollment.clazz.image %}
-                             <img src="{{ enrollment.clazz.image.url }}" alt="" class="w-full h-full object-cover rounded-lg">
+                             <img src="{{ enrollment.clazz.image.url }}" alt="" class="w-full h-full object-cover rounded-xl">
                         {% else %}
-                             <div class="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                                <i data-lucide="image" class="h-5 w-5 text-gray-400"></i>
+                             <div class="w-full h-full bg-white rounded-xl flex items-center justify-center">
+                                <i data-lucide="book-open" class="h-6 w-6 text-emerald-500"></i>
                              </div>
                         {% endif %}
                     </div>
@@ -34,96 +43,78 @@
                 <!-- Overall Result Badge -->
                 {% if enrollment.final_test is not None %}
                     <div class="flex items-center gap-3">
-                        <span class="text-sm font-medium text-gray-500 uppercase tracking-wide">Course Result:</span>
+                        <span class="text-sm font-medium text-gray-500 uppercase tracking-wide">Result:</span>
                         {% if enrollment.is_passed %}
-                            <span class="px-4 py-1.5 rounded-full bg-green-100 text-green-700 font-bold border border-green-200 shadow-sm flex items-center gap-1.5">
-                                <i data-lucide="check-circle-2" class="h-4 w-4"></i> PASSED
+                            <span class="px-5 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="h-5 w-5"></i> PASSED
                             </span>
                         {% else %}
-                            <span class="px-4 py-1.5 rounded-full bg-red-100 text-red-700 font-bold border border-red-200 shadow-sm flex items-center gap-1.5">
-                                <i data-lucide="x-circle" class="h-4 w-4"></i> FAILED
+                            <span class="px-5 py-2 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold shadow-lg shadow-red-500/30 flex items-center gap-2">
+                                <i data-lucide="x-circle" class="h-5 w-5"></i> FAILED
                             </span>
                         {% endif %}
                     </div>
                 {% else %}
-                    <span class="px-4 py-1.5 rounded-full bg-gray-100 text-gray-500 font-bold text-xs border border-gray-200">
-                        IN PROGRESS
+                    <span class="px-4 py-2 rounded-2xl bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 font-bold text-sm">
+                        <i data-lucide="loader" class="inline h-4 w-4 mr-1 animate-spin"></i> IN PROGRESS
                     </span>
                 {% endif %}
             </div>
 
+            <!-- Grades Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-white text-gray-500 font-medium border-b border-gray-100">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-600 font-medium border-b border-gray-100">
                         <tr>
-                            <th class="px-6 py-4">Assessment Item</th>
-                            <th class="px-6 py-4">Score</th>
-                            <th class="px-6 py-4">Weight</th>
-                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4 text-left">Assessment Item</th>
+                            <th class="px-6 py-4 text-center">Score</th>
+                            <th class="px-6 py-4 text-center">Weight</th>
+                            <th class="px-6 py-4 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-gray-50">
                         <!-- Mini Tests -->
-                        <tr class="hover:bg-gray-50/30">
-                            <td class="px-6 py-4 font-medium text-gray-900">Mini Test 1</td>
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.minitest1|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">20% (Avg)</td>
-                            <td class="px-6 py-4">
-                                {% if enrollment.minitest1 is not None %}
-                                    <span class="text-gray-600">Recorded</span>
-                                {% else %}
-                                    <span class="text-gray-400">-</span>
-                                {% endif %}
+                        {% with tests="minitest1,minitest2,minitest3,minitest4" %}
+                        {% for i in "1234" %}
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-900">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xs font-bold">{{ i }}</div>
+                                    Mini Test {{ i }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-gray-900">
+                                {% if i == "1" %}{{ enrollment.minitest1|default_if_none:"-" }}{% endif %}
+                                {% if i == "2" %}{{ enrollment.minitest2|default_if_none:"-" }}{% endif %}
+                                {% if i == "3" %}{{ enrollment.minitest3|default_if_none:"-" }}{% endif %}
+                                {% if i == "4" %}{{ enrollment.minitest4|default_if_none:"-" }}{% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center text-gray-500">5%</td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Recorded</span>
                             </td>
                         </tr>
-                        <tr class="hover:bg-gray-50/30">
-                            <td class="px-6 py-4 font-medium text-gray-900">Mini Test 2</td>
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.minitest2|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">20% (Avg)</td>
-                            <td class="px-6 py-4">
-                                {% if enrollment.minitest2 is not None %}
-                                    <span class="text-gray-600">Recorded</span>
-                                {% else %}
-                                    <span class="text-gray-400">-</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/30">
-                            <td class="px-6 py-4 font-medium text-gray-900">Mini Test 3</td>
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.minitest3|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">20% (Avg)</td>
-                            <td class="px-6 py-4">
-                                {% if enrollment.minitest3 is not None %}
-                                    <span class="text-gray-600">Recorded</span>
-                                {% else %}
-                                    <span class="text-gray-400">-</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/30">
-                            <td class="px-6 py-4 font-medium text-gray-900">Mini Test 4</td>
-                            <td class="px-6 py-4 font-semibold">{{ enrollment.minitest4|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">20% (Avg)</td>
-                            <td class="px-6 py-4">
-                                {% if enrollment.minitest4 is not None %}
-                                    <span class="text-gray-600">Recorded</span>
-                                {% else %}
-                                    <span class="text-gray-400">-</span>
-                                {% endif %}
-                            </td>
-                        </tr>
+                        {% endfor %}
+                        {% endwith %}
 
                         <!-- Midterm -->
-                        <tr class="bg-indigo-50/10 hover:bg-indigo-50/30">
-                            <td class="px-6 py-4 font-medium text-indigo-900">Midterm Exam</td>
-                            <td class="px-6 py-4 font-bold text-indigo-700">{{ enrollment.midterm|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">30%</td>
-                            <td class="px-6 py-4">
+                        <tr class="bg-indigo-50/30 hover:bg-indigo-50/50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-indigo-900">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                        <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    </div>
+                                    Midterm Exam
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-indigo-700 text-lg">{{ enrollment.midterm|default_if_none:"-" }}</td>
+                            <td class="px-6 py-4 text-center text-indigo-600 font-medium">30%</td>
+                            <td class="px-6 py-4 text-center">
                                 {% if enrollment.midterm is not None %}
                                     {% if enrollment.midterm >= 4 %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">Pass</span>
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Pass</span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">Fail</span>
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Fail</span>
                                     {% endif %}
                                 {% else %}
                                     <span class="text-gray-400">-</span>
@@ -132,16 +123,23 @@
                         </tr>
 
                         <!-- Final -->
-                        <tr class="bg-indigo-50/30 hover:bg-indigo-50/50">
-                            <td class="px-6 py-4 font-bold text-indigo-900">Final Exam</td>
-                            <td class="px-6 py-4 font-bold text-indigo-700 text-lg">{{ enrollment.final_test|default_if_none:"-" }}</td>
-                            <td class="px-6 py-4 text-gray-500">50%</td>
-                            <td class="px-6 py-4">
+                        <tr class="bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 transition-colors">
+                            <td class="px-6 py-5 font-bold text-emerald-900">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                                        <i data-lucide="trophy" class="h-5 w-5"></i>
+                                    </div>
+                                    Final Exam
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 text-center font-extrabold text-emerald-700 text-2xl">{{ enrollment.final_test|default_if_none:"-" }}</td>
+                            <td class="px-6 py-5 text-center text-emerald-600 font-bold">50%</td>
+                            <td class="px-6 py-5 text-center">
                                 {% if enrollment.final_test is not None %}
                                     {% if enrollment.final_test >= 4 %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">Pass</span>
+                                        <span class="px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">Pass</span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">Fail</span>
+                                        <span class="px-4 py-1.5 rounded-full text-sm font-bold bg-red-500 text-white shadow-lg shadow-red-500/30">Fail</span>
                                     {% endif %}
                                 {% else %}
                                     <span class="text-gray-400">-</span>
@@ -153,8 +151,12 @@
             </div>
         </div>
         {% empty %}
-        <div class="p-12 text-center text-gray-500 bg-white rounded-2xl border border-gray-200">
-            No achievements record found.
+        <div class="py-16 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div class="h-20 w-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="trophy" class="h-10 w-10 text-emerald-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No Achievements Yet</h3>
+            <p class="text-gray-500">Enroll in courses and complete assessments to see your grades here.</p>
         </div>
         {% endfor %}
     </div>

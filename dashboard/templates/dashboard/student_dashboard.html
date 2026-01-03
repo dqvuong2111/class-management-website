@@ -4,274 +4,244 @@
 {% block title %}My Learning Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Header with Welcome & Notifications -->
-    <div class="flex flex-col md:flex-row justify-between items-stretch gap-6">
-        <!-- Welcome Banner -->
-        <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg flex-1">
-            <div class="relative z-10 flex flex-col justify-between h-full">
-                <div>
-                    <h2 class="text-3xl font-bold mb-2">Welcome back, {{ student.full_name }}! 👋</h2>
-                    <p class="text-indigo-100 text-lg">You are enrolled in <span class="font-bold text-white">{{ enrollments.count }}</span> classes this semester.</p>
-                </div>
-            </div>
-            
-            <!-- Decorative background circles -->
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-indigo-500/30 blur-3xl"></div>
-        </div>
-
-        <!-- Notification Center -->
-        <div class="flex-shrink-0 relative group">
-            <button class="relative p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all">
-                <i data-lucide="bell" class="h-6 w-6 text-gray-600"></i>
-                {% if unread_count > 0 %}
-                    <span class="absolute top-3 right-3 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
-                {% endif %}
-            </button>
-            
-            <!-- Dropdown -->
-            <div class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 hidden group-hover:block z-50 overflow-hidden">
-                <div class="p-4 border-b border-gray-50 bg-gray-50/50">
-                    <h3 class="font-bold text-gray-900">Notifications</h3>
-                </div>
-                <div class="max-h-96 overflow-y-auto">
-                    {% if notifications %}
-                        {% for noti in notifications %}
-                            <div class="p-4 border-b border-gray-50 {% if not noti.is_read %}bg-blue-50/50{% endif %} hover:bg-gray-50 transition-colors">
-                                <div class="flex gap-3 items-center">
-                                    <div class="mt-1">
-                                        {% if noti.type == 'announcement' %}
-                                            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                                <i data-lucide="megaphone" class="h-4 w-4"></i>
-                                            </div>
-                                        {% else %}
-                                            <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                                                <i data-lucide="clipboard-list" class="h-4 w-4"></i>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium {% if not noti.is_read %}text-gray-900{% else %}text-gray-500{% endif %}">
-                                            <a href="{{ noti.url }}" class="hover:underline {% if not noti.is_read %}font-semibold{% endif %}">{{ noti.title }}</a>
-                                        </p>
-                                        <p class="text-xs text-gray-500">{{ noti.class_name }} • {{ noti.date|timesince }} ago</p>
-                                    </div>
-                                    {% if not noti.is_read %}
-                                        <form method="post" action="{% url 'dashboard:mark_notification_as_read' %}" class="ml-auto flex-shrink-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="notification_type" value="{{ noti.type }}">
-                                            <input type="hidden" name="notification_pk" value="{{ noti.pk }}">
-                                            <button type="submit" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Mark as Read">
-                                                <i data-lucide="check" class="h-4 w-4"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="p-8 text-center text-gray-400 text-sm">
-                            No new notifications.
+<div class="space-y-8 pb-8">
+    <!-- Hero Welcome Banner -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 rounded-[2.5rem] p-10 text-white shadow-2xl">
+        <div class="relative z-10">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-pulse">
+                            <i data-lucide="graduation-cap" class="h-8 w-8"></i>
                         </div>
-                    {% endif %}
+                        <div>
+                            <p class="text-cyan-100 text-sm font-medium">Welcome back,</p>
+                            <h2 class="text-4xl font-black">{{ student.full_name }} 👋</h2>
+                        </div>
+                    </div>
+                    <p class="text-cyan-100 text-lg max-w-xl">You're enrolled in <span class="font-bold text-white bg-white/20 px-2 py-0.5 rounded-lg">{{ enrollments.count }} courses</span> this semester. Keep up the great work!</p>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="flex gap-4">
+                    <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 text-center min-w-[130px] border border-white/20 hover:bg-white/20 transition-all">
+                        <div class="text-4xl font-black mb-1">{{ enrollments.count }}</div>
+                        <div class="text-xs text-cyan-100 uppercase tracking-wider font-bold">Courses</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 text-center min-w-[130px] border border-white/20 hover:bg-white/20 transition-all">
+                        <div class="text-4xl font-black mb-1">{{ unread_count }}</div>
+                        <div class="text-xs text-cyan-100 uppercase tracking-wider font-bold">Notifications</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Enrollments Grid (Merged My Courses) -->
-    <div>
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <i data-lucide="layout-grid" class="h-5 w-5 text-indigo-600"></i>
-                My Courses
-            </h3>
-            <a href="{% url 'dashboard:student_courses' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
-                Browse New Courses
-            </a>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Decorative Elements -->
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-60 h-60 bg-cyan-300/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 right-1/4 w-32 h-32 bg-pink-400/20 rounded-full blur-2xl animate-pulse"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="{% url 'dashboard:student_courses' %}" class="group bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-3xl text-white hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="book-plus" class="h-7 w-7"></i>
+            </div>
+            <h3 class="font-bold text-lg">Browse Courses</h3>
+            <p class="text-indigo-100 text-sm">Explore new classes</p>
+        </a>
+        <a href="{% url 'dashboard:student_schedule' %}" class="group bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-3xl text-white hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="calendar" class="h-7 w-7"></i>
+            </div>
+            <h3 class="font-bold text-lg">My Schedule</h3>
+            <p class="text-emerald-100 text-sm">View weekly classes</p>
+        </a>
+        <a href="{% url 'dashboard:student_achievements' %}" class="group bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-3xl text-white hover:shadow-2xl hover:shadow-amber-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="trophy" class="h-7 w-7"></i>
+            </div>
+            <h3 class="font-bold text-lg">Grades</h3>
+            <p class="text-amber-100 text-sm">Check your scores</p>
+        </a>
+        <a href="{% url 'dashboard:messages' %}" class="group bg-gradient-to-br from-pink-500 to-rose-600 p-6 rounded-3xl text-white hover:shadow-2xl hover:shadow-pink-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="message-circle" class="h-7 w-7"></i>
+            </div>
+            <h3 class="font-bold text-lg">Messages</h3>
+            <p class="text-pink-100 text-sm">Chat with teachers</p>
+        </a>
+    </div>
+
+    <!-- Notifications (if any unread) -->
+    {% if unread_count > 0 %}
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 border border-blue-100">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                <i data-lucide="bell" class="h-5 w-5"></i>
+            </div>
+            <h3 class="font-bold text-gray-900">Recent Notifications</h3>
+            <span class="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">{{ unread_count }} new</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for noti in notifications|slice:":4" %}
+            {% if not noti.is_read %}
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-blue-100/50 flex items-center gap-4">
+                {% if noti.type == 'announcement' %}
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg">
+                    <i data-lucide="megaphone" class="h-5 w-5"></i>
+                </div>
+                {% else %}
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
+                    <i data-lucide="clipboard-list" class="h-5 w-5"></i>
+                </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <a href="{{ noti.url }}" class="font-bold text-gray-900 hover:text-indigo-600 transition-colors block truncate">{{ noti.title }}</a>
+                    <p class="text-xs text-gray-500">{{ noti.class_name }} • {{ noti.date|timesince }} ago</p>
+                </div>
+                <form method="post" action="{% url 'dashboard:mark_notification_as_read' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="notification_type" value="{{ noti.type }}">
+                    <input type="hidden" name="notification_pk" value="{{ noti.pk }}">
+                    <button type="submit" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-colors">
+                        <i data-lucide="check" class="h-5 w-5"></i>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- My Courses Section -->
+    <div>
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-black text-gray-900 flex items-center gap-3">
+                <div class="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i data-lucide="layout-grid" class="h-5 w-5"></i>
+                </div>
+                My Enrolled Courses
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {% for enrollment in enrollments %}
-            <div class="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full">
-                <!-- Class Image -->
+            <div class="group bg-white rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 flex flex-col h-full">
+                <!-- Image -->
                 <div class="h-48 overflow-hidden relative">
                     {% if enrollment.clazz.image and enrollment.clazz.image.url %}
-                        <img src="{{ enrollment.clazz.image.url }}" alt="{{ enrollment.clazz.class_name }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                        <img src="{{ enrollment.clazz.image.url }}" alt="{{ enrollment.clazz.class_name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                     {% else %}
-                        <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                            <i data-lucide="image-off" class="h-12 w-12"></i>
+                        <div class="w-full h-full bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 flex items-center justify-center">
+                            <i data-lucide="book-open" class="h-16 w-16 text-white/20"></i>
                         </div>
                     {% endif %}
-                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-indigo-600 shadow-sm">
-                        {{ enrollment.clazz.class_type.code }}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div class="absolute top-4 left-4 bg-cyan-600/90 backdrop-blur-sm px-3 py-1.5 rounded-xl">
+                        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ enrollment.clazz.class_type.code }}</span>
+                    </div>
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <h4 class="text-xl font-bold text-white leading-tight group-hover:text-cyan-200 transition-colors">{{ enrollment.clazz.class_name }}</h4>
                     </div>
                 </div>
 
-                <!-- Card Body -->
+                <!-- Body -->
                 <div class="p-6 flex-1 flex flex-col">
-                    <div class="mb-4">
-                        <h4 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">
-                            {{ enrollment.clazz.class_name }}
-                        </h4>
-                        <p class="text-sm text-gray-500 flex items-center gap-1">
-                            <i data-lucide="user" class="h-3 w-3"></i>
-                            {{ enrollment.clazz.teacher.full_name|default:"No Teacher Assigned" }}
-                        </p>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                            {{ enrollment.clazz.teacher.full_name|slice:":1"|upper|default:"?" }}
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900 text-sm">{{ enrollment.clazz.teacher.full_name|default:"TBA" }}</p>
+                            <p class="text-xs text-gray-500">Instructor</p>
+                        </div>
                     </div>
-
-                    <!-- Schedule Info (Text Only) -->
-                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                        <i data-lucide="map-pin" class="h-4 w-4 text-indigo-500"></i>
-                        <span>Room: {{ enrollment.clazz.room }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-6">
-                        <i data-lucide="calendar-days" class="h-4 w-4 text-indigo-500"></i>
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="h-4 w-4 text-cyan-500"></i> {{ enrollment.clazz.room }}</span>
                         {% if enrollment.clazz.schedule %}
-                            <span>{{ enrollment.clazz.schedule.day_of_week }} • {{ enrollment.clazz.schedule.start_time|time:"H:i" }}</span>
-                        {% else %}
-                            <span>Schedule TBA</span>
+                        <span class="flex items-center gap-1"><i data-lucide="calendar" class="h-4 w-4 text-cyan-500"></i> {{ enrollment.clazz.schedule.day_of_week }}</span>
                         {% endif %}
                     </div>
                     
-                    <!-- Action Button -->
-                    <div class="mt-auto pt-4 border-t border-gray-100 flex gap-2">
-                         <a href="{% url 'dashboard:student_class_detail' enrollment.clazz.pk %}" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-indigo-50 text-indigo-600 text-sm font-medium hover:bg-indigo-100 transition-colors">
-                            Details <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                         </a>
-                         <button onclick="document.getElementById('grades-modal-{{ enrollment.enrollment_id }}').showModal()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
-                            <i data-lucide="bar-chart-2" class="h-4 w-4"></i> Report
-                         </button>
+                    <div class="mt-auto flex gap-2">
+                        <a href="{% url 'dashboard:student_class_detail' enrollment.clazz.pk %}" class="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-bold text-center hover:shadow-lg hover:shadow-cyan-500/30 transition-all text-sm">
+                            View Class
+                        </a>
+                        <button onclick="document.getElementById('grades-modal-{{ enrollment.enrollment_id }}').showModal()" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                            <i data-lucide="bar-chart-2" class="h-5 w-5"></i>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal for Grades -->
-            <dialog id="grades-modal-{{ enrollment.enrollment_id }}" class="modal p-0 rounded-2xl shadow-2xl backdrop:bg-gray-900/50 w-full max-w-lg">
-                <div class="bg-white rounded-2xl overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900">{{ enrollment.clazz.class_name }}</h3>
-                            <p class="text-sm text-gray-500">Academic Performance Report</p>
+            <!-- Grades Modal -->
+            <dialog id="grades-modal-{{ enrollment.enrollment_id }}" class="modal p-0 rounded-3xl shadow-2xl backdrop:bg-gray-900/60 w-full max-w-lg">
+                <div class="bg-white rounded-3xl overflow-hidden">
+                    <div class="p-6 bg-gradient-to-r from-cyan-600 to-blue-600 text-white">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold">{{ enrollment.clazz.class_name }}</h3>
+                                <p class="text-cyan-100 text-sm">Academic Performance Report</p>
+                            </div>
+                            <button onclick="document.getElementById('grades-modal-{{ enrollment.enrollment_id }}').close()" class="p-2 hover:bg-white/20 rounded-xl transition-colors">
+                                <i data-lucide="x" class="h-6 w-6"></i>
+                            </button>
                         </div>
-                        <button onclick="document.getElementById('grades-modal-{{ enrollment.enrollment_id }}').close()" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
-                            <i data-lucide="x" class="h-5 w-5"></i>
-                        </button>
                     </div>
                     
                     <div class="p-6">
-                        <div class="overflow-hidden rounded-xl border border-gray-200">
-                            <table class="w-full text-sm text-left">
-                                <thead class="bg-gray-50 text-gray-600 font-medium">
-                                    <tr>
-                                        <th class="px-4 py-3">Assessment</th>
-                                        <th class="px-4 py-3 text-right">Score</th>
-                                        <th class="px-4 py-3 text-right">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <!-- Mini Tests -->
-                                    <tr class="hover:bg-gray-50/50">
-                                        <td class="px-4 py-3 text-gray-900">Mini Test 1</td>
-                                        <td class="px-4 py-3 text-right font-semibold">{{ enrollment.minitest1|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.minitest1 is not None %}
-                                                {% if enrollment.minitest1 >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50/50">
-                                        <td class="px-4 py-3 text-gray-900">Mini Test 2</td>
-                                        <td class="px-4 py-3 text-right font-semibold">{{ enrollment.minitest2|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.minitest2 is not None %}
-                                                {% if enrollment.minitest2 >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50/50">
-                                        <td class="px-4 py-3 text-gray-900">Mini Test 3</td>
-                                        <td class="px-4 py-3 text-right font-semibold">{{ enrollment.minitest3|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.minitest3 is not None %}
-                                                {% if enrollment.minitest3 >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50/50">
-                                        <td class="px-4 py-3 text-gray-900">Mini Test 4</td>
-                                        <td class="px-4 py-3 text-right font-semibold">{{ enrollment.minitest4|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.minitest4 is not None %}
-                                                {% if enrollment.minitest4 >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <!-- Midterm -->
-                                    <tr class="bg-indigo-50/30">
-                                        <td class="px-4 py-3 text-indigo-900 font-medium">Midterm Exam</td>
-                                        <td class="px-4 py-3 text-right font-bold text-indigo-700">{{ enrollment.midterm|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.midterm is not None %}
-                                                {% if enrollment.midterm >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <!-- Final -->
-                                    <tr class="bg-indigo-50/60">
-                                        <td class="px-4 py-3 text-indigo-900 font-bold">Final Exam</td>
-                                        <td class="px-4 py-3 text-right font-bold text-indigo-700">{{ enrollment.final_test|default_if_none:"-" }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            {% if enrollment.final_test is not None %}
-                                                {% if enrollment.final_test >= 5 %}
-                                                    <span class="text-green-600 text-xs font-bold">PASS</span>
-                                                {% else %}
-                                                    <span class="text-red-600 text-xs font-bold">FAIL</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                <span class="font-medium text-gray-700">Mini Test 1</span>
+                                <span class="font-bold text-gray-900">{{ enrollment.minitest1|default_if_none:"-" }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                <span class="font-medium text-gray-700">Mini Test 2</span>
+                                <span class="font-bold text-gray-900">{{ enrollment.minitest2|default_if_none:"-" }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                <span class="font-medium text-gray-700">Mini Test 3</span>
+                                <span class="font-bold text-gray-900">{{ enrollment.minitest3|default_if_none:"-" }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                                <span class="font-medium text-gray-700">Mini Test 4</span>
+                                <span class="font-bold text-gray-900">{{ enrollment.minitest4|default_if_none:"-" }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-indigo-50 rounded-xl border-2 border-indigo-100">
+                                <span class="font-bold text-indigo-900">Midterm</span>
+                                <span class="font-bold text-indigo-700 text-lg">{{ enrollment.midterm|default_if_none:"-" }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-cyan-200">
+                                <span class="font-bold text-cyan-900">Final Exam</span>
+                                <span class="font-black text-cyan-700 text-2xl">{{ enrollment.final_test|default_if_none:"-" }}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-6 pt-0">
-                         <button onclick="document.getElementById('grades-modal-{{ enrollment.enrollment_id }}').close()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-xl transition-colors">
-                            Close
-                        </button>
+                        
+                        {% if enrollment.final_test is not None %}
+                        <div class="mt-6 p-4 rounded-2xl text-center {% if enrollment.is_passed %}bg-emerald-100 border-2 border-emerald-200{% else %}bg-red-100 border-2 border-red-200{% endif %}">
+                            {% if enrollment.is_passed %}
+                            <span class="text-2xl font-black text-emerald-700">✓ PASSED</span>
+                            {% else %}
+                            <span class="text-2xl font-black text-red-700">✗ FAILED</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </dialog>
-
             {% empty %}
-            <div class="col-span-full flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-gray-200 border-dashed">
-                <div class="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                    <i data-lucide="book-x" class="h-8 w-8 text-gray-400"></i>
+            <div class="col-span-full text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+                <div class="h-24 w-24 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="book-open" class="h-12 w-12 text-cyan-400"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-1">No Courses Found</h3>
-                <p class="text-gray-500 mb-6">You haven't enrolled in any classes yet.</p>
-                <a href="{% url 'class_list' %}" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm hover:shadow">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">No Courses Yet</h3>
+                <p class="text-gray-500 mb-6">Start your learning journey by enrolling in a course!</p>
+                <a href="{% url 'dashboard:student_courses' %}" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-2xl hover:shadow-xl hover:shadow-cyan-500/30 transition-all">
+                    <i data-lucide="book-plus" class="h-6 w-6 mr-2"></i>
                     Browse Courses
                 </a>
             </div>
@@ -279,35 +249,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* Custom Scrollbar for nicer looking tables/modals */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-        background: transparent; 
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
-        border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; 
-    }
-    
-    /* Animation for blobs */
-    @keyframes blob {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-        100% { transform: translateY(0px); }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-</style>
 {% endblock %}

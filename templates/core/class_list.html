@@ -5,80 +5,182 @@
 
 {% block content %}
     <!-- Header Section -->
-    <section class="pt-32 pb-12 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Explore Our Courses</h1>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-8">Discover a wide range of courses designed to help you master new skills and advance your career.</p>
+    <section class="pt-28 pb-12 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"></div>
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 text-indigo-600 text-sm font-semibold mb-6">
+                <i data-lucide="sparkles" class="h-4 w-4"></i>
+                Start Your Learning Journey Today
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+                Explore Our Courses
+            </h1>
+            <p class="text-lg text-white/80 max-w-xl mx-auto mb-8">Discover courses designed to help you master new skills</p>
             
-            <!-- Search Form -->
-            <form method="GET" action="{% url 'class_list' %}" class="max-w-md mx-auto relative">
-                <input type="text" name="q" placeholder="Search courses, topics, or instructors..." value="{{ query|default:'' }}" class="w-full pl-12 pr-4 py-4 rounded-full border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none shadow-sm transition-all">
-                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5"></i>
-                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition-colors">
-                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
-                </button>
-            </form>
+            <!-- Search -->
+            <div class="max-w-xl mx-auto relative">
+                <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60"></i>
+                <input type="text" id="course-search" placeholder="Search courses or instructors..." class="w-full pl-14 pr-6 py-4 bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:border-white/60 focus:bg-white/20 transition-all text-base">
+            </div>
         </div>
     </section>
 
     <!-- Course Grid -->
-    <section class="py-16 bg-white flex-grow">
+    <section class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {% if classes %}
-                    {% for clazz in classes %}
-                    <div class="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
-                        <div class="h-56 overflow-hidden relative shrink-0">
-                             {% if clazz.image %}
-                                <!-- Debug: Image URL is {{ clazz.image.url }} -->
-                                <img src="{{ clazz.image.url }}" alt="{{ clazz.class_name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
-                            {% else %}
-                                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                                    <i data-lucide="image" class="h-12 w-12 text-gray-300"></i>
-                                </div>
-                            {% endif %}
-                            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm">
-                                {{ clazz.class_type.code }}
-                            </div>
-                        </div>
-                        <div class="p-8 flex flex-col flex-1">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-xl font-bold text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">{{ clazz.class_name }}</h3>
-                                <span class="text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded-lg text-sm">${{ clazz.price|floatformat:0 }}</span>
-                            </div>
-                            <p class="text-gray-500 text-sm mb-6 line-clamp-3 flex-1">{{ clazz.description|default:"Enhance your skills with this comprehensive course designed for students of all levels." }}</p>
-                            
-                            <div class="flex items-center justify-between pt-6 border-t border-gray-50 mt-auto">
-                                <div class="flex items-center gap-3">
-                                    <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold">
-                                        {{ clazz.teacher.full_name|slice:":1" }}
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-gray-900">{{ clazz.teacher.full_name|default:"TBA" }}</p>
-                                        <p class="text-xs text-gray-500">Instructor</p>
-                                    </div>
-                                </div>
-                                <a href="{% url 'class_detail' pk=clazz.pk %}" class="h-10 w-10 rounded-full bg-gray-900 text-white flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
-                                    <i data-lucide="arrow-up-right" class="h-5 w-5"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="col-span-full text-center py-20">
-                        <div class="bg-gray-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="search-x" class="h-10 w-10 text-gray-400"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">No Courses Found</h3>
-                        {% if query %}
-                            <p class="text-gray-500">We couldn't find any courses matching "{{ query }}". Try different keywords.</p>
+            <!-- Results Count & Sort -->
+            <div class="mb-6 flex items-center justify-between">
+                <p class="text-gray-600"><span id="results-count" class="font-bold text-gray-900">{{ classes|length }}</span> courses</p>
+                <select id="sort-courses" class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="name">Name A-Z</option>
+                    <option value="price-low">Price: Low → High</option>
+                    <option value="price-high">Price: High → Low</option>
+                </select>
+            </div>
+            
+            <!-- Course Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="course-grid">
+                {% for clazz in classes %}
+                <div class="course-card group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 flex flex-col" 
+                     data-name="{{ clazz.class_name|lower }}" 
+                     data-type="{{ clazz.class_type.code|lower|default:'' }}"
+                     data-teacher="{{ clazz.teacher.full_name|lower|default:'tba' }}"
+                     data-price="{{ clazz.price|default:0 }}">
+                    
+                    <!-- Image -->
+                    <div class="h-40 overflow-hidden relative">
+                        {% if clazz.image %}
+                            <img src="{{ clazz.image.url }}" alt="{{ clazz.class_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         {% else %}
-                            <p class="text-gray-500">Check back later for new classes.</p>
+                            <div class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                <i data-lucide="book-open" class="h-12 w-12 text-white/30"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Price Badge -->
+                        <div class="absolute top-3 right-3 bg-white px-3 py-1.5 rounded-xl shadow-lg">
+                            <span class="text-base font-bold text-emerald-600">${{ clazz.price|floatformat:0|default:"0" }}</span>
+                        </div>
+                        
+                        <!-- Category Badge -->
+                        {% if clazz.class_type %}
+                        <div class="absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-sm px-3 py-1 rounded-lg">
+                            <span class="text-xs font-bold text-white uppercase">{{ clazz.class_type.code }}</span>
+                        </div>
                         {% endif %}
                     </div>
-                {% endif %}
+                    
+                    <!-- Content -->
+                    <div class="p-4 flex flex-col flex-1">
+                        <h3 class="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors">{{ clazz.class_name }}</h3>
+                        
+                        <!-- Instructor -->
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                {{ clazz.teacher.full_name|slice:":1"|upper|default:"?" }}
+                            </div>
+                            <span class="text-sm text-gray-600 truncate">{{ clazz.teacher.full_name|default:"TBA" }}</span>
+                        </div>
+                        
+                        <!-- Stats Row -->
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="users" class="h-3.5 w-3.5"></i> 25
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="clock" class="h-3.5 w-3.5"></i> 12 wks
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="star" class="h-3.5 w-3.5 fill-amber-400 text-amber-400"></i> 4.9
+                            </span>
+                        </div>
+                        
+                        <!-- Action -->
+                        <a href="{% url 'class_detail' pk=clazz.pk %}" class="mt-auto block w-full py-2.5 bg-indigo-600 text-white font-bold text-center rounded-xl hover:bg-indigo-700 transition-colors text-sm">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                    <div class="bg-indigo-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="book-x" class="h-8 w-8 text-indigo-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">No Courses Available</h3>
+                    <p class="text-gray-500">Check back later for new courses.</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Empty Search State -->
+            <div id="no-results" class="hidden text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-200 mt-6">
+                <div class="bg-indigo-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="search-x" class="h-8 w-8 text-indigo-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">No Courses Found</h3>
+                <p class="text-gray-500 mb-4">Try different keywords</p>
+                <button onclick="document.getElementById('course-search').value=''; filterCourses();" class="px-5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors">
+                    Show All
+                </button>
             </div>
         </div>
     </section>
+
+<script>
+const searchInput = document.getElementById('course-search');
+const courseCards = document.querySelectorAll('.course-card');
+const resultsCount = document.getElementById('results-count');
+const noResults = document.getElementById('no-results');
+const sortSelect = document.getElementById('sort-courses');
+
+function filterCourses() {
+    const query = searchInput.value.toLowerCase().trim();
+    let visibleCount = 0;
+    
+    courseCards.forEach(card => {
+        const name = card.dataset.name || '';
+        const type = card.dataset.type || '';
+        const teacher = card.dataset.teacher || '';
+        
+        const matches = name.includes(query) || type.includes(query) || teacher.includes(query);
+        
+        if (matches || query === '') {
+            card.style.display = '';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    if (resultsCount) resultsCount.textContent = visibleCount;
+    if (noResults) noResults.classList.toggle('hidden', visibleCount > 0 || courseCards.length === 0);
+}
+
+function sortCourses() {
+    const sortValue = sortSelect.value;
+    const grid = document.getElementById('course-grid');
+    const cards = Array.from(courseCards);
+    
+    cards.sort((a, b) => {
+        if (sortValue === 'name') {
+            return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+        } else if (sortValue === 'price-low') {
+            return parseFloat(a.dataset.price || 0) - parseFloat(b.dataset.price || 0);
+        } else if (sortValue === 'price-high') {
+            return parseFloat(b.dataset.price || 0) - parseFloat(a.dataset.price || 0);
+        }
+        return 0;
+    });
+    
+    cards.forEach(card => grid.appendChild(card));
+}
+
+if (searchInput) searchInput.addEventListener('input', filterCourses);
+if (sortSelect) sortSelect.addEventListener('change', sortCourses);
+</script>
 {% endblock %}

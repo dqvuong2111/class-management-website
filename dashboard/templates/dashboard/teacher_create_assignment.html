@@ -4,105 +4,108 @@
 {% block title %}Create New Assignment{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="max-w-3xl mx-auto space-y-8">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Create Assignment</h1>
-            <p class="text-gray-500">Create a new task for your students.</p>
+    <div class="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-8 text-white">
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="h-14 w-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                    <i data-lucide="plus-circle" class="h-7 w-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold">Create Assignment</h1>
+                    <p class="text-emerald-100">Create a new task for your students</p>
+                </div>
+            </div>
+            <a href="{% url 'dashboard:teacher_assignments' %}" class="px-5 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl font-medium hover:bg-white/20 transition-all flex items-center gap-2">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                Back
+            </a>
         </div>
-        <a href="{% url 'dashboard:teacher_assignments' %}" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-all font-medium shadow-sm">
-            <i data-lucide="arrow-left" class="h-4 w-4"></i>
-            Back to Assignments
-        </a>
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
     </div>
 
-    <!-- Main Content -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:p-8">
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Form Card -->
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="p-8">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Title -->
+                    <div class="space-y-2">
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-bold text-gray-700">Assignment Title</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="type" class="h-5 w-5 text-emerald-500"></i>
+                            </div>
+                            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" class="pl-12 block w-full rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 py-3 bg-gray-50 transition-all" placeholder="e.g., Algebra Midterm Project" value="{{ form.title.value|default:'' }}">
+                        </div>
+                        {% if form.title.errors %}<p class="text-red-500 text-xs mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <!-- Due Date -->
+                    <div class="space-y-2">
+                        <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-bold text-gray-700">Due Date</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="calendar" class="h-5 w-5 text-emerald-500"></i>
+                            </div>
+                            <input type="datetime-local" name="{{ form.due_date.name }}" id="{{ form.due_date.id_for_label }}" class="pl-12 block w-full rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 py-3 bg-gray-50 transition-all" value="{{ form.due_date.value|default:'' }}">
+                        </div>
+                        {% if form.due_date.errors %}<p class="text-red-500 text-xs mt-1">{{ form.due_date.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Class Selection -->
                 <div class="space-y-2">
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Assignment Title</label>
+                    <label for="{{ form.clazz.id_for_label }}" class="block text-sm font-bold text-gray-700">Assign to Class</label>
                     <div class="relative">
-                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="type" class="h-5 w-5 text-gray-400"></i>
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                            <i data-lucide="users" class="h-5 w-5 text-emerald-500"></i>
                         </div>
-                        <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" class="pl-10 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5 bg-gray-50 border" placeholder="e.g., Algebra Midterm Project" value="{{ form.title.value|default:'' }}">
+                        {{ form.clazz }}
                     </div>
-                    {% if form.title.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.title.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.clazz.errors %}<p class="text-red-500 text-xs mt-1">{{ form.clazz.errors.0 }}</p>{% endif %}
                 </div>
 
+                <!-- Description -->
                 <div class="space-y-2">
-                     <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Due Date</label>
-                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="calendar" class="h-5 w-5 text-gray-400"></i>
-                        </div>
-                        <input type="datetime-local" name="{{ form.due_date.name }}" id="{{ form.due_date.id_for_label }}" class="pl-10 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5 bg-gray-50 border" value="{{ form.due_date.value|default:'' }}">
-                    </div>
-                     {% if form.due_date.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.due_date.errors.0 }}</p>
-                    {% endif %}
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-gray-700">Description / Instructions</label>
+                    <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="5" class="block w-full rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 p-4 bg-gray-50 transition-all" placeholder="Describe the assignment details, expectations, and any resources needed...">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}<p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>{% endif %}
                 </div>
-            </div>
 
-            <div class="space-y-2">
-                <label for="{{ form.clazz.id_for_label }}" class="block text-sm font-medium text-gray-700">Assign to Class</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="users" class="h-5 w-5 text-gray-400"></i>
-                    </div>
-                     {{ form.clazz }} <!-- Render the select widget provided by Django, assume it has basics. We can also style it with JS or widget attrs in form definition, but CSS below helps -->
+                <!-- Submit -->
+                <div class="flex justify-end pt-6 border-t border-gray-100">
+                    <button type="submit" class="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 focus:outline-none focus:ring-4 focus:ring-emerald-100 transition-all">
+                        <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                        Create Assignment
+                    </button>
                 </div>
-                 {% if form.clazz.errors %}
-                    <p class="text-red-500 text-xs mt-1">{{ form.clazz.errors.0 }}</p>
-                {% endif %}
-            </div>
-
-            <div class="space-y-2">
-                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Description / Instructions</label>
-                <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="5" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 bg-gray-50 border" placeholder="Describe the assignment details...">{{ form.description.value|default:'' }}</textarea>
-                {% if form.description.errors %}
-                    <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
-                {% endif %}
-            </div>
-
-            <div class="flex justify-end pt-4 border-t border-gray-100">
-                <button type="submit" class="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-md hover:shadow-lg">
-                    <i data-lucide="plus-circle" class="h-5 w-5"></i>
-                    Create Assignment
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 <style>
-    /* Ensure Django Select Widget looks good */
     select {
         display: block;
         width: 100%;
-        padding-left: 2.5rem; /* Space for icon */
+        padding-left: 3rem;
         padding-right: 2.5rem;
-        padding-top: 0.625rem;
-        padding-bottom: 0.625rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
         font-size: 0.875rem;
-        line-height: 1.25rem;
-        border-radius: 0.75rem;
-        border-color: #d1d5db;
+        border-radius: 1rem;
+        border: 2px solid #e5e7eb;
         background-color: #f9fafb;
-        border-width: 1px;
+        transition: all 0.2s;
     }
     select:focus {
-        --tw-ring-color: #6366f1;
-        border-color: #6366f1;
-        outline: 2px solid transparent;
-        outline-offset: 2px;
-        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), 0 0 0 1px #6366f1;
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
     }
 </style>
 {% endblock %}

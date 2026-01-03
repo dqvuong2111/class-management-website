@@ -1,198 +1,226 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    <!-- Welcome Header -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg mb-8">
+<div class="space-y-8 pb-8">
+    <!-- Hero Welcome Banner -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl">
         <div class="relative z-10">
-            <h1 class="text-3xl font-bold mb-2">Welcome back, {{ user.username }}!</h1>
-            <p class="text-indigo-100 text-lg">Here's what's happening with your classes today.</p>
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div class="flex-1">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="h-16 w-16 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30">
+                            <i data-lucide="shield" class="h-8 w-8"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-300 text-sm font-medium">Admin Control Panel</p>
+                            <h2 class="text-4xl font-black">System Overview 🚀</h2>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 text-lg max-w-xl">Manage students, teachers, classes, and enrollments. You have full administrative control.</p>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="flex gap-4 flex-wrap">
+                    <div class="bg-white/5 backdrop-blur-md rounded-3xl p-6 text-center min-w-[120px] border border-white/10 hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black mb-1 text-emerald-400">{{ total_students }}</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-bold">Students</div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-md rounded-3xl p-6 text-center min-w-[120px] border border-white/10 hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black mb-1 text-amber-400">{{ total_teachers }}</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-bold">Teachers</div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-md rounded-3xl p-6 text-center min-w-[120px] border border-white/10 hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black mb-1 text-cyan-400">{{ total_classes }}</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-bold">Classes</div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <!-- Decorative background circles -->
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-indigo-500/30 blur-3xl"></div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <!-- Classes Card -->
-        <a href="#" class="block">
-            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow h-full">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
-                        <i data-lucide="layout-dashboard" class="h-6 w-6 text-indigo-600"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_classes }}</p>
-                        <p class="text-sm text-gray-500">Total Classes</p>
-                    </div>
-                </div>
-            </div>
-        </a>
-
-        <!-- Students Card -->
-        <a href="{% url 'dashboard:manage_students' %}" class="block">
-            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow h-full">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
-                        <i data-lucide="users" class="h-6 w-6 text-green-600"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_students }}</p>
-                        <p class="text-sm text-gray-500">Active Students</p>
-                    </div>
-                </div>
-            </div>
-        </a>
-
-        <!-- Teachers Card -->
-        <a href="{% url 'dashboard:manage_teachers' %}" class="block">
-            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow h-full">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50">
-                        <i data-lucide="user-check" class="h-6 w-6 text-amber-600"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-bold text-gray-900">{{ total_teachers }}</p>
-                        <p class="text-sm text-gray-500">Teachers</p>
-                    </div>
-                </div>
-            </div>
-        </a>
-
-        <!-- Pending Requests Card -->
-        <a href="{% url 'dashboard:manage_enrollments' %}" class="block">
-            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow h-full">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
-                        <i data-lucide="clipboard-list" class="h-6 w-6 text-rose-600"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-bold text-gray-900">{{ pending_requests_count }}</p>
-                        <p class="text-sm text-gray-500">Pending Requests</p>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-
-    <!-- Search and Quick Actions -->
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <div class="relative w-full md:w-96">
-            <form method="get" action="{% url 'dashboard:admin_dashboard' %}">
-                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"></i>
-                <input 
-                    type="text" 
-                    name="q" 
-                    placeholder="Search classes or teachers..." 
-                    value="{{ query|default:'' }}"
-                    class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                >
-            </form>
-        </div>
-        <a href="{% url 'dashboard:add_class' %}" class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">
-            <i data-lucide="plus" class="h-4 w-4"></i>
-            Add New Class
-        </a>
-    </div>
-
-    <!-- Class Overview Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <h3 class="font-semibold text-gray-900">Class Overview</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-3 font-medium">Class Name</th>
-                        <th class="px-6 py-3 font-medium">Teacher</th>
-                        <th class="px-6 py-3 font-medium">Students</th>
-                        <th class="px-6 py-3 font-medium text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for class in classes %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-900">
-                            <div class="flex items-center gap-3">
-                                <div class="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                                    {{ class.class_name|slice:":2"|upper }}
-                                </div>
-                                {{ class.class_name }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-gray-600">{{ class.teacher.full_name|default:"N/A" }}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {{ class.enrolled_students }} Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="{% url 'dashboard:manage_schedule' class.pk %}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Manage Schedule">
-                                    <i data-lucide="calendar" class="h-4 w-4"></i>
-                                </a>
-                                <a href="{% url 'dashboard:take_attendance' class.pk %}" class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Take Attendance">
-                                    <i data-lucide="check-square" class="h-4 w-4"></i>
-                                </a>
-                                <a href="{% url 'dashboard:edit_class' class.pk %}" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Class">
-                                    <i data-lucide="edit-2" class="h-4 w-4"></i>
-                                </a>
-                                <a href="{% url 'dashboard:delete_class' class.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Class">
-                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                            No classes found. <a href="{% url 'dashboard:add_class' %}" class="text-indigo-600 hover:underline">Create one now</a>.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-60 h-60 bg-fuchsia-500/20 rounded-full blur-3xl"></div>
     </div>
 
     <!-- Quick Actions Grid -->
-    <div class="mt-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="{% url 'dashboard:add_student' %}" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group">
-                <div class="mx-auto bg-indigo-50 h-12 w-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-indigo-100 transition-colors">
-                    <i data-lucide="user-plus" class="h-6 w-6 text-indigo-600"></i>
-                </div>
-                <p class="font-medium text-gray-900">Add Student</p>
-                <p class="text-xs text-gray-500 mt-1">Register new student</p>
-            </a>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <a href="{% url 'dashboard:manage_students' %}" class="group bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="users" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Students</h3>
+        </a>
+        <a href="{% url 'dashboard:manage_teachers' %}" class="group bg-gradient-to-br from-amber-500 to-orange-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-amber-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="user-check" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Teachers</h3>
+        </a>
+        <a href="{% url 'dashboard:add_class' %}" class="group bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="plus-circle" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Add Class</h3>
+        </a>
+        <a href="{% url 'dashboard:manage_enrollments' %}" class="group bg-gradient-to-br from-cyan-500 to-blue-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-cyan-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="clipboard-list" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Enrollments</h3>
+        </a>
+        <a href="{% url 'dashboard:manage_requests' %}" class="group bg-gradient-to-br from-rose-500 to-pink-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-rose-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="file-question" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Requests</h3>
+        </a>
+        <a href="{% url 'dashboard:admin_statistics' %}" class="group bg-gradient-to-br from-violet-500 to-fuchsia-600 p-5 rounded-2xl text-white hover:shadow-2xl hover:shadow-violet-500/30 hover:-translate-y-2 transition-all duration-300">
+            <div class="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i data-lucide="bar-chart-2" class="h-6 w-6"></i>
+            </div>
+            <h3 class="font-bold text-sm">Statistics</h3>
+        </a>
+    </div>
 
-            <a href="{% url 'dashboard:add_teacher' %}" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group">
-                <div class="mx-auto bg-amber-50 h-12 w-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-amber-100 transition-colors">
-                    <i data-lucide="briefcase" class="h-6 w-6 text-amber-600"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left: Recent Activity / Pending -->
+        <div class="space-y-8">
+            <!-- Pending Requests -->
+            <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+                <h3 class="text-lg font-black text-gray-900 mb-4 flex items-center gap-3">
+                    <div class="h-10 w-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i data-lucide="clock" class="h-5 w-5"></i>
+                    </div>
+                    Pending Requests
+                    {% if pending_count > 0 %}<span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">{{ pending_count }}</span>{% endif %}
+                </h3>
+                
+                {% if pending_enrollments %}
+                <div class="space-y-3">
+                    {% for enrollment in pending_enrollments|slice:":5" %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-amber-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-800 font-bold">
+                                {{ enrollment.student.full_name|slice:":1"|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-gray-900 text-sm truncate">{{ enrollment.student.full_name }}</p>
+                                <p class="text-xs text-gray-500 truncate">{{ enrollment.clazz.class_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                <p class="font-medium text-gray-900">Add Teacher</p>
-                <p class="text-xs text-gray-500 mt-1">Register new staff</p>
-            </a>
-            
-             <a href="{% url 'dashboard:add_enrollment' %}" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group">
-                <div class="mx-auto bg-green-50 h-12 w-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
-                    <i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>
+                <a href="{% url 'dashboard:manage_requests' %}" class="block mt-4 text-center py-2 bg-amber-50 text-amber-700 rounded-xl font-bold text-sm hover:bg-amber-100 transition-colors">
+                    View All Requests →
+                </a>
+                {% else %}
+                <div class="text-center py-8 text-gray-400">
+                    <i data-lucide="check-circle" class="h-10 w-10 mx-auto mb-2 text-emerald-400"></i>
+                    <p>No pending requests</p>
                 </div>
-                <p class="font-medium text-gray-900">Enroll Student</p>
-                <p class="text-xs text-gray-500 mt-1">Assign to class</p>
-            </a>
+                {% endif %}
+            </div>
 
-            <a href="#" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group">
-                <div class="mx-auto bg-rose-50 h-12 w-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-rose-100 transition-colors">
-                    <i data-lucide="file-text" class="h-6 w-6 text-rose-600"></i>
+            <!-- Quick Stats Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl border border-emerald-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="h-10 w-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                            <i data-lucide="trending-up" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900">{{ active_enrollments }}</p>
+                    <p class="text-xs text-gray-500 font-bold">Active Enrollments</p>
                 </div>
-                <p class="font-medium text-gray-900">Reports</p>
-                <p class="text-xs text-gray-500 mt-1">View system logs</p>
-            </a>
+                <div class="bg-gradient-to-br from-violet-50 to-purple-50 p-5 rounded-2xl border border-violet-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="h-10 w-10 bg-violet-100 rounded-xl flex items-center justify-center text-violet-600">
+                            <i data-lucide="briefcase" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900">{{ total_staff }}</p>
+                    <p class="text-xs text-gray-500 font-bold">Staff Members</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Class Overview -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-lg font-black text-gray-900 flex items-center gap-3">
+                        <div class="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                            <i data-lucide="layout-grid" class="h-5 w-5"></i>
+                        </div>
+                        All Classes
+                    </h3>
+                    <a href="{% url 'dashboard:add_class' %}" class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-sm rounded-xl hover:shadow-lg transition-all">
+                        + Add Class
+                    </a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 text-gray-600 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 text-left">Class</th>
+                                <th class="px-6 py-4 text-left">Teacher</th>
+                                <th class="px-6 py-4 text-center">Students</th>
+                                <th class="px-6 py-4 text-center">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            {% for clazz in classes %}
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-12 w-12 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                            {% if clazz.image %}
+                                                <img src="{{ clazz.image.url }}" class="w-full h-full object-cover">
+                                            {% else %}
+                                                <i data-lucide="book-open" class="h-6 w-6 text-white"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900">{{ clazz.class_name }}</p>
+                                            <p class="text-xs text-gray-500">{{ clazz.class_type.code }} • {{ clazz.room }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ clazz.teacher.full_name|default:"Unassigned" }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold">{{ clazz.enrollments.count }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">Active</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{% url 'dashboard:edit_class' clazz.pk %}" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
+                                            <i data-lucide="edit-2" class="h-4 w-4"></i>
+                                        </a>
+                                        <a href="{% url 'dashboard:delete_class' clazz.pk %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" onclick="return confirm('Delete this class?')">
+                                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                    <i data-lucide="inbox" class="h-10 w-10 mx-auto mb-2"></i>
+                                    <p>No classes created yet</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

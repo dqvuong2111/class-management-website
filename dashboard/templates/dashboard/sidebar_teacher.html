@@ -1,55 +1,55 @@
 {% load static %}
-<aside class="w-72 flex flex-col flex-shrink-0 bg-white border-r border-gray-200">
+<aside class="w-72 flex flex-col flex-shrink-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700">
     <!-- Header -->
-    <div class="flex h-16 items-center justify-between border-b border-gray-200 px-4 flex-shrink-0">
+    <div class="flex h-20 items-center justify-between border-b border-slate-700/50 px-5 flex-shrink-0">
         <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600">
-                <i data-lucide="briefcase" class="h-5 w-5 text-white"></i>
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
+                <i data-lucide="briefcase" class="h-6 w-6 text-white"></i>
             </div>
             <div>
-                <h1 class="font-semibold text-gray-900">Teacher Portal</h1>
-                <p class="text-xs text-gray-500">EduManage</p>
+                <h1 class="font-bold text-white text-lg">Teacher Portal</h1>
+                <p class="text-xs text-slate-400">EduManage</p>
             </div>
         </div>
     </div>
 
     <!-- Navigation -->
-    <nav id="sidebar-nav" class="flex-1 overflow-y-auto p-4 space-y-2">
-        <a href="{% url 'dashboard:teacher_dashboard' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_dashboard' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+    <nav id="sidebar-nav" class="flex-1 overflow-y-auto p-4 space-y-1.5">
+        <a href="{% url 'dashboard:teacher_dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_dashboard' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
             My Classes
         </a>
-        <a href="{% url 'dashboard:teacher_assignments' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_assignments' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_assignments' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_assignments' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="clipboard-list" class="h-5 w-5"></i>
             Assignments
         </a>
-        <a href="{% url 'dashboard:teacher_create_assignment' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_create_assignment' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_create_assignment' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_create_assignment' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="plus-circle" class="h-5 w-5"></i>
             Create Assignment
         </a>
-        <a href="{% url 'dashboard:teacher_schedule' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_schedule' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_schedule' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_schedule' %}bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="calendar-check" class="h-5 w-5"></i>
             Schedule
         </a>
-        <a href="{% url 'dashboard:teacher_qr' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_qr' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_qr' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_qr' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="qr-code" class="h-5 w-5"></i>
             QR Attendance
         </a>
-        <a href="{% url 'dashboard:teacher_feedback' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_feedback' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_feedback' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_feedback' %}bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="message-square" class="h-5 w-5"></i>
             Student Feedback
         </a>
-        <a href="{% url 'dashboard:teacher_statistics' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'teacher_statistics' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:teacher_statistics' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'teacher_statistics' %}bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="bar-chart-2" class="h-5 w-5"></i>
             Statistics
         </a>
-        <a href="{% url 'dashboard:messages' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {% if request.resolver_match.url_name == 'messages' %}bg-blue-100 text-blue-600{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{% url 'dashboard:messages' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'messages' %}bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30{% else %}text-slate-300 hover:bg-slate-700/50 hover:text-white{% endif %}">
             <i data-lucide="mail" class="h-5 w-5"></i>
             Messages
         </a>
         
-        <div class="pt-4 mt-4 border-t border-gray-200">
-            <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100">
+        <div class="pt-4 mt-4 border-t border-slate-700/50">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all">
                 <i data-lucide="home" class="h-5 w-5"></i>
                 Back to Home
             </a>
@@ -57,20 +57,23 @@
     </nav>
 
     <!-- Footer -->
-    <div class="border-t border-gray-200 p-4">
-        <div class="mb-4 flex items-center gap-3 rounded-xl bg-gray-50 p-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                <i data-lucide="user" class="h-5 w-5"></i>
+    <div class="border-t border-slate-700/50 p-4">
+        <div class="mb-4 flex items-center gap-3 rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
+            <div class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm shadow-lg">
+                {{ user.teacher.full_name|slice:":2"|upper }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="truncate font-medium text-gray-900">{{ user.teacher.full_name }}</p>
-                <p class="text-xs text-gray-500">Teacher</p>
+                <p class="truncate font-bold text-white">{{ user.teacher.full_name }}</p>
+                <p class="text-xs text-slate-400 flex items-center gap-1">
+                    <span class="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Teacher
+                </p>
             </div>
         </div>
         <div class="flex gap-2">
             <form action="{% url 'accounts:logout' %}" method="post" class="w-full">
                 {% csrf_token %}
-                <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-red-600 rounded-xl hover:shadow-lg hover:shadow-rose-500/30 transition-all">
                     <i data-lucide="log-out" class="h-4 w-4"></i>
                     Sign Out
                 </button>
@@ -83,13 +86,10 @@
     document.addEventListener("DOMContentLoaded", function() {
         const sidebarNav = document.getElementById("sidebar-nav");
         if (sidebarNav) {
-            // Restore scroll position
             const savedPosition = sessionStorage.getItem("sidebar-scroll-position");
             if (savedPosition) {
                 sidebarNav.scrollTop = savedPosition;
             }
-
-            // Save scroll position on link click
             const links = sidebarNav.querySelectorAll("a");
             links.forEach(link => {
                 link.addEventListener("click", () => {
