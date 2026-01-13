@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from core.models import Student
+
 
 class SimpleSignUpForm(UserCreationForm):
     ROLE_CHOICES = [

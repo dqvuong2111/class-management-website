@@ -68,11 +68,11 @@
                     
                     {% if user.is_authenticated %}
                          <span class="text-sm font-medium text-gray-600">Hi, {{ user.username }}</span>
-                        {% if user.is_staff %}
+                        {% if user.is_staff or user.is_superuser %}
                              <a href="{% url 'dashboard:dashboard' %}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-indigo-300 transition-all">Dashboard</a>
-                        {% elif user.teacher %}
+                        {% elif user.teacher_profile %}
                              <a href="{% url 'dashboard:teacher_dashboard' %}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-indigo-300 transition-all">Teacher Portal</a>
-                        {% elif user.student %}
+                        {% elif user.student_profile %}
                              <a href="{% url 'dashboard:student_dashboard' %}" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-indigo-300 transition-all">Student Portal</a>
                         {% endif %}
                          <form action="{% url 'accounts:logout' %}" method="post">

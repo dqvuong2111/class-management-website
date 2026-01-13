@@ -1,36 +1,32 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Clazz, Student, Enrollment, Teacher, Staff
+from .models import Clazz, Student, Teacher, Enrollment
 from django.db.models import Q
 
 def get_display_name(user):
     """
-    Returns the full name of the user based on their role (Student, Teacher, Staff),
-    or their username if no role is found.
+    Returns the full name of the user based on their role profile,
+    or their username if no profile is found.
     """
     if not user.is_authenticated:
         return ""
     
-    if hasattr(user, 'student'):
-        return user.student.full_name
-    
-    if hasattr(user, 'teacher'):
-        return user.teacher.full_name
-        
-    if hasattr(user, 'staff'):
-        return user.staff.full_name
+    try:
+        if hasattr(user, 'teacher_profile'):
+            return user.teacher_profile.full_name
+        if hasattr(user, 'student_profile'):
+            return user.student_profile.full_name
+        if hasattr(user, 'admin_profile'):
+            return user.admin_profile.full_name
+    except Exception:
+        pass
         
     return user.username
 
-# Create your views here.
 def home(request):
-    """
-    This view renders the home page.
-    """
-    # Lấy 3 lớp học đầu tiên, sắp xếp theo ID giảm dần
+    """Renders the home page with featured classes."""
     featured_classes = Clazz.objects.all().order_by('-class_id')[:3]
-    
     context = {
         'classes': featured_classes,
         'user_display_name': get_display_name(request.user)
@@ -38,11 +34,8 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 def class_list(request):
-    """
-    This view fetches and displays all available classes.
-    """
-    all_classes = Clazz.objects.all().order_by('class_name') # Lấy tất cả lớp học
-    
+    """Fetches and displays all available classes with search functionality."""
+    all_classes = Clazz.objects.all().order_by('class_name')
     query = request.GET.get('q')
     if query:
         all_classes = all_classes.filter(
@@ -51,7 +44,6 @@ def class_list(request):
             Q(class_type__code__icontains=query) |
             Q(teacher__full_name__icontains=query)
         )
-    
     context = {
         'classes': all_classes,
         'query': query,
@@ -60,15 +52,10 @@ def class_list(request):
     return render(request, 'core/class_list.html', context)
 
 def class_detail(request, pk):
-    """
-    Hiển thị thông tin chi tiết của một lớp học duy nhất.
-    """
-    # Lấy đối tượng Clazz có pk tương ứng, hoặc trả về lỗi 404 nếu không tìm thấy.
+    """Displays detailed information for a single class."""
     clazz = get_object_or_404(Clazz, pk=pk)
-    
     context = {
         'clazz': clazz,
-        # Bạn có thể truyền thêm dữ liệu liên quan ở đây, ví dụ danh sách học viên
         'enrollments': clazz.enrollments.all(),
         'user_display_name': get_display_name(request.user)
     }
@@ -78,10 +65,10 @@ def class_detail(request, pk):
 def enroll_student(request, class_id):
     clazz = get_object_or_404(Clazz, pk=class_id)
     
-    # Check if user is a student
+    # Check if user has a student profile
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "Only students can enroll in classes.")
         return redirect('class_detail', pk=class_id)
 
@@ -104,7 +91,5 @@ def enroll_student(request, class_id):
     return redirect('dashboard:student_dashboard')
 
 def features(request):
-    """
-    This view renders the features page.
-    """
+    """Renders the features page."""
     return render(request, 'core/features.html')

@@ -9,26 +9,26 @@ import random
 from django.urls import reverse # Added for generating URLs in views
 import uuid # Added uuid import
 from core.models import (
-    Clazz, Teacher, Student, Staff, Enrollment, ClassType, Schedule, Attendance,
+    Clazz, Admin, Teacher, Student, Enrollment, ClassType, Attendance,
     Material, Announcement, Assignment, AssignmentSubmission, Feedback, Message,
-    AttendanceSession, StudentAnnouncementReadStatus, StudentAssignmentReadStatus
+    AttendanceSession, ContentReadStatus
 )
 from .forms import ClassForm, TeacherForm, StudentForm, StaffForm, EnrollmentForm, ClassTypeForm, ScheduleForm, AttendanceForm, MaterialForm, AnnouncementForm, AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm, AssignmentCreateForm, FeedbackForm, MessageForm
 from django.db.models import Count, Q, Avg
 
-# ... (existing views)
 
-# --- New Features Views ---
 
 @login_required
 def teacher_create_assignment_view(request):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except (AttributeError, Teacher.DoesNotExist):
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
     
-    teacher = request.user.teacher
     if request.method == 'POST':
         form = AssignmentCreateForm(request.POST, teacher=teacher)
+
         if form.is_valid():
             form.save()
             messages.success(request, "Assignment created successfully!")
@@ -40,11 +40,12 @@ def teacher_create_assignment_view(request):
 
 @login_required
 def teacher_feedback_list_view(request):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except (AttributeError, Teacher.DoesNotExist):
         return redirect('home')
     
-    teacher = request.user.teacher
-    feedbacks = Feedback.objects.filter(teacher=teacher).select_related('clazz').order_by('-created_at')
+    feedbacks = Feedback.objects.filter(clazz__teacher=teacher).select_related('clazz').order_by('-created_at')
     
     # Calculate averages
     avg_teacher = feedbacks.aggregate(Avg('teacher_rate'))['teacher_rate__avg']
@@ -59,8 +60,8 @@ def teacher_feedback_list_view(request):
 @login_required
 def student_give_feedback_view(request, class_pk):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         return redirect('home')
         
     clazz = get_object_or_404(Clazz, pk=class_pk)
@@ -88,64 +89,25 @@ def student_give_feedback_view(request, class_pk):
         
     return render(request, 'dashboard/student_give_feedback.html', {'form': form, 'clazz': clazz})
 
-@login_required
-def teacher_qr_generate_view(request):
-    if not hasattr(request.user, 'teacher'):
-        return redirect('home')
-    
-    teacher = request.user.teacher
-    classes = Clazz.objects.filter(teacher=teacher)
-    today = datetime.date.today()
-    
-    qr_data = None
-    selected_class = None
-    
-    if request.method == 'POST':
-        class_id = request.POST.get('class_id')
-        selected_class = get_object_or_404(Clazz, pk=class_id, teacher=teacher)
-        
-        # Generate or get session
-        session, created = AttendanceSession.objects.get_or_create(
-            clazz=selected_class,
-            date=today,
-            defaults={'token': str(uuid.uuid4())}
-        )
-        # Build URL for students to scan
-        # In prod this would be full domain
-        qr_data = request.build_absolute_uri(f"/dashboard/student/qr/scan/{session.token}/")
-        
-    return render(request, 'dashboard/teacher_qr_generate.html', {
-        'classes': classes,
-        'qr_data': qr_data,
-        'selected_class': selected_class
-    })
 
-# Old scan view removed
-# The new logic is placed at the end of the file as part of the previous bulk edit.
-# To trigger a clean replace, I'm replacing the entire function block here with a comment reference, 
-# ensuring the function defined in the previous step is the ONE.
-# Wait, I added the NEW function in the previous step but didn't remove the OLD one potentially?
-# The previous step replaced "teacher_qr_generate_view" and "stop_qr_session_view". 
-# Ah, I need to check if I accidentally duplicated logic or if the old one is still there. 
-# Looking at the previous tool call, I replaced `teacher_qr_generate_view` ... to ... `student_qr_scan_view`.
-# So I effectively appended the new student view. Now I need to delete the OLD one which was around line 122.
 
 def get_display_name(user):
     """
-    Returns the full name of the user based on their role (Student, Teacher, Staff),
+    Returns the full name of the user based on their role profile,
     or their username if no role is found.
     """
     if not user.is_authenticated:
         return ""
     
-    if hasattr(user, 'student'):
-        return user.student.full_name
-    
-    if hasattr(user, 'teacher'):
-        return user.teacher.full_name
-        
-    if hasattr(user, 'staff'):
-        return user.staff.full_name
+    try:
+        if hasattr(user, 'teacher_profile'):
+            return user.teacher_profile.full_name
+        if hasattr(user, 'student_profile'):
+            return user.student_profile.full_name
+        if hasattr(user, 'admin_profile'):
+            return user.admin_profile.full_name
+    except Exception:
+        pass
         
     return user.username
 
@@ -166,9 +128,12 @@ def messages_view(request):
         return contacts_map[u.pk]
 
     # --- 1. Populate from Class Relationships ---
-    if hasattr(user, 'student'):
+    is_student = hasattr(user, 'student_profile')
+    is_teacher = hasattr(user, 'teacher_profile')
+
+    if is_student:
         # User is a Student
-        student = user.student
+        student = user.student_profile
         enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz', 'clazz__teacher', 'clazz__teacher__user')
         
         for enrollment in enrollments:
@@ -190,9 +155,9 @@ def messages_view(request):
                     contact.role_label = "Student"
                     contact.class_names.add(c_name)
 
-    elif hasattr(user, 'teacher'):
+    elif is_teacher:
         # User is a Teacher
-        teacher = user.teacher
+        teacher = user.teacher_profile
         classes = Clazz.objects.filter(teacher=teacher)
         
         for clazz in classes:
@@ -213,13 +178,13 @@ def messages_view(request):
     for h_user in history_users:
         if h_user.pk not in contacts_map:
             contact = get_or_create_contact(h_user)
-            # Try to infer role if not already set by class logic
-            if hasattr(h_user, 'teacher'):
+            # Try to infer role
+            if hasattr(h_user, 'teacher_profile'):
                 contact.role_label = "Teacher"
-            elif hasattr(h_user, 'student'):
+            elif hasattr(h_user, 'student_profile'):
                 contact.role_label = "Student"
-            elif h_user.is_staff:
-                contact.role_label = "Staff"
+            elif hasattr(h_user, 'admin_profile'):
+                contact.role_label = "Admin"
             # No class names for pure history contacts (unless we want to fetch them, but spec implies showing "class" for class relations)
     
     # --- 3. Search Functionality ---
@@ -292,12 +257,12 @@ def messages_view(request):
                 # New find
                 res.class_names = set()
                 # Infer role
-                if hasattr(res, 'teacher'):
+                if hasattr(res, 'teacher_profile'):
                     res.role_label = "Teacher"
-                elif hasattr(res, 'student'):
+                elif hasattr(res, 'student_profile'):
                     res.role_label = "Student"
                 elif res.is_staff:
-                    res.role_label = "Staff"
+                    res.role_label = "Admin"
                 else:
                     res.role_label = "User"
                 final_contacts.append(res)
@@ -334,12 +299,12 @@ def messages_view(request):
                 contacts.insert(0, contacts_map[active_contact.pk])
             else:
                 active_contact.class_names = set()
-                if hasattr(active_contact, 'teacher'):
+                if hasattr(active_contact, 'teacher_profile'):
                     active_contact.role_label = "Teacher"
-                elif hasattr(active_contact, 'student'):
+                elif hasattr(active_contact, 'student_profile'):
                     active_contact.role_label = "Student"
-                elif active_contact.is_staff:
-                    active_contact.role_label = "Staff"
+                elif hasattr(active_contact, 'admin_profile'):
+                    active_contact.role_label = "Admin"
                 else:
                     active_contact.role_label = "User"
                 contacts.insert(0, active_contact)
@@ -423,12 +388,12 @@ def messages_view(request):
         'form': form,
     }
 
-    if hasattr(user, 'teacher'):
+    if is_teacher:
         base_template = 'dashboard/teacher_base_dashboard.html'
-        context['teacher'] = user.teacher
-    elif hasattr(user, 'student'):
+        context['teacher'] = user.teacher_profile
+    elif is_student:
         base_template = 'dashboard/student_base_dashboard.html'
-        context['student'] = user.student
+        context['student'] = user.student_profile
     else:
         base_template = 'dashboard/base_dashboard.html'
     
@@ -437,10 +402,19 @@ def messages_view(request):
     return render(request, 'dashboard/messages.html', context)
 
 def is_staff_user(user):
-    return user.is_staff
+    # Check if user has admin profile OR is superuser
+    if user.is_superuser: return True
+    try:
+        return hasattr(user, 'admin_profile')
+    except:
+        return False
 
 def is_teacher_or_staff(user):
-    return user.is_staff or hasattr(user, 'teacher')
+    if user.is_superuser: return True
+    try:
+        return hasattr(user, 'teacher_profile') or hasattr(user, 'admin_profile')
+    except:
+        return False
 
 @login_required
 @user_passes_test(is_staff_user, login_url="accounts:login")
@@ -478,11 +452,12 @@ def admin_dashboard_view(request):
 
 @login_required
 def teacher_dashboard_view(request):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except (AttributeError, Teacher.DoesNotExist):
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
     
-    teacher = request.user.teacher
     today = datetime.date.today()
     
     # 1. Today's Schedule
@@ -499,10 +474,10 @@ def teacher_dashboard_view(request):
         }
         today_name_vn = day_mapping.get(today_name_en, today_name_en)
 
-        today_schedule = Schedule.objects.filter(
-            clazz__teacher=teacher, 
+        today_schedule = Clazz.objects.filter(
+            teacher=teacher, 
             day_of_week__icontains=today_name_vn
-        ).select_related('clazz', 'clazz__class_type').order_by('start_time')
+        ).select_related('class_type').order_by('start_time')
     except Exception as e:
         today_schedule = []
         print(f"Error loading schedule: {e}")
@@ -607,130 +582,25 @@ def teacher_dashboard_view(request):
 
 @login_required
 def teacher_assignments_view(request):
-    if not hasattr(request.user, 'teacher'):
+    if not hasattr(request.user, 'teacher_profile'):
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
     
-    teacher = request.user.teacher
+    teacher = request.user.teacher_profile
     assignments = Assignment.objects.filter(clazz__teacher=teacher).select_related('clazz').order_by('-due_date')
     
     return render(request, 'dashboard/teacher_assignments.html', {
         'assignments': assignments,
     })
 
-@login_required
-def teacher_schedule_view(request):
-    if not hasattr(request.user, 'teacher'):
-        messages.error(request, "Access denied. Teachers only.")
-        return redirect('home')
-    
-    teacher = request.user.teacher
-    
-    # Get month/year from query params or default to today
-    today = datetime.date.today()
-    try:
-        year = int(request.GET.get('year', today.year))
-        month = int(request.GET.get('month', today.month))
-    except ValueError:
-        year = today.year
-        month = today.month
-        
-    # Generate calendar
-    cal = calendar.Calendar()
-    # Use monthdayscalendar as requested by user
-    month_days = cal.monthdayscalendar(year, month)
-    
-    # Get all classes for this teacher that are active in this month
-    _, last_day = calendar.monthrange(year, month)
-    month_start = datetime.date(year, month, 1)
-    month_end = datetime.date(year, month, last_day)
-    
-    active_classes = Clazz.objects.filter(
-        teacher=teacher,
-        start_date__lte=month_end,
-        end_date__gte=month_start
-    ).select_related('schedule', 'class_type')
-    
-    # Map English day names to Vietnamese
-    day_mapping = {
-        'Monday': 'Thứ 2',
-        'Tuesday': 'Thứ 3',
-        'Wednesday': 'Thứ 4',
-        'Thursday': 'Thứ 5',
-        'Friday': 'Thứ 6',
-        'Saturday': 'Thứ 7',
-        'Sunday': 'Chủ Nhật'
-    }
-    
-    # Structure the calendar data
-    calendar_data = []
-    
-    for week in month_days:
-        week_data = []
-        for day in week:
-            if day == 0:
-                week_data.append({'day': 0, 'events': []})
-            else:
-                current_date = datetime.date(year, month, day)
-                day_name_en = current_date.strftime('%A')
-                day_name_vn = day_mapping.get(day_name_en, day_name_en)
-                
-                events = []
-                
-                for clazz in active_classes:
-                    # Check if class is active on this specific date
-                    if clazz.start_date <= current_date <= clazz.end_date:
-                        # Check if schedule matches this day of week
-                        if hasattr(clazz, 'schedule'):
-                            # Case-insensitive check
-                            if day_name_vn.lower() in clazz.schedule.day_of_week.lower():
-                                events.append({
-                                    'class_name': clazz.class_name,
-                                    'time': f"{clazz.schedule.start_time.strftime('%H:%M')} - {clazz.schedule.end_time.strftime('%H:%M')}",
-                                    'room': clazz.room,
-                                    'id': clazz.pk
-                                })
-                
-                # Sort events by time
-                events.sort(key=lambda x: x['time'])
-                
-                is_today = (current_date == today)
-                
-                week_data.append({
-                    'day': day,
-                    'date': current_date,
-                    'is_today': is_today,
-                    'events': events
-                })
-        calendar_data.append(week_data)
-
-    # Navigation logic
-    prev_month_date = month_start - datetime.timedelta(days=1)
-    # Finding next month
-    if month == 12:
-        next_month_date = datetime.date(year + 1, 1, 1)
-    else:
-        next_month_date = datetime.date(year, month + 1, 1)
-    
-    context = {
-        'teacher': teacher,
-        'calendar_data': calendar_data,
-        'current_month_name': calendar.month_name[month],
-        'current_year': year,
-        'prev_month': prev_month_date.month,
-        'prev_year': prev_month_date.year,
-        'next_month': next_month_date.month,
-        'next_year': next_month_date.year,
-    }
-    return render(request, 'dashboard/teacher_schedule.html', context)
 
 @login_required
 def teacher_statistics_view(request):
-    if not hasattr(request.user, 'teacher'):
+    if not hasattr(request.user, 'teacher_profile'):
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
     
-    teacher = request.user.teacher
+    teacher = request.user.teacher_profile
     today = datetime.date.today()
     
     # 1. Detailed Class Stats
@@ -877,8 +747,8 @@ def admin_statistics_view(request):
 @login_required
 def student_dashboard_view(request):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
         
@@ -896,8 +766,8 @@ def student_dashboard_view(request):
 
     for a in recent_announcements_qs:
         # Check read status for each announcement
-        read_status, created = StudentAnnouncementReadStatus.objects.get_or_create(
-            student=student, announcement=a,
+        read_status, created = ContentReadStatus.objects.get_or_create(
+            student=student, content_type='announcement', content_id=a.pk,
             defaults={'is_read': False}
         )
         notifications.append({
@@ -915,8 +785,8 @@ def student_dashboard_view(request):
         
     for a in recent_assignments_qs:
         # Check read status for each assignment
-        read_status, created = StudentAssignmentReadStatus.objects.get_or_create(
-            student=student, assignment=a,
+        read_status, created = ContentReadStatus.objects.get_or_create(
+            student=student, content_type='assignment', content_id=a.pk,
             defaults={'is_read': False}
         )
         notifications.append({
@@ -946,7 +816,11 @@ def student_dashboard_view(request):
 @login_required
 def mark_notification_as_read(request):
     if request.method == 'POST':
-        student = get_object_or_404(Student, user=request.user)
+        try:
+            student = request.user.student_profile
+        except:
+             return redirect('dashboard:student_dashboard')
+
         notification_type = request.POST.get('notification_type')
         notification_pk = request.POST.get('notification_pk')
         
@@ -955,22 +829,14 @@ def mark_notification_as_read(request):
             return redirect('dashboard:student_dashboard')
 
         try:
-            if notification_type == 'announcement':
-                announcement = get_object_or_404(Announcement, pk=notification_pk)
-                StudentAnnouncementReadStatus.objects.update_or_create(
+            if notification_type in ['announcement', 'assignment']:
+                ContentReadStatus.objects.update_or_create(
                     student=student,
-                    announcement=announcement,
+                    content_type=notification_type,
+                    content_id=notification_pk,
                     defaults={'is_read': True, 'read_at': timezone.now()}
                 )
-                messages.success(request, f"Announcement '{announcement.title}' marked as read.")
-            elif notification_type == 'assignment':
-                assignment = get_object_or_404(Assignment, pk=notification_pk)
-                StudentAssignmentReadStatus.objects.update_or_create(
-                    student=student,
-                    assignment=assignment,
-                    defaults={'is_read': True, 'read_at': timezone.now()}
-                )
-                messages.success(request, f"Assignment '{assignment.title}' marked as read.")
+                messages.success(request, "Marked as read.")
             else:
                 messages.error(request, "Unknown notification type.")
         except Exception as e:
@@ -981,40 +847,25 @@ def mark_notification_as_read(request):
 @login_required
 def student_courses_view(request):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
 
     # Fetch all classes (can be optimized to exclude enrolled ones)
-    classes = Clazz.objects.all().order_by('class_name').select_related('teacher', 'class_type', 'schedule')
+    classes = Clazz.objects.all().order_by('class_name').select_related('teacher', 'class_type')
     
     return render(request, 'dashboard/student_courses.html', {
         'classes': classes,
         'student': student
     })
 
-@login_required
-def student_schedule_view(request):
-    try:
-        student = request.user.student
-    except Student.DoesNotExist:
-        messages.error(request, "You are not registered as a student.")
-        return redirect('home')
-    
-    # Get all enrollments for the student
-    enrollments = student.enrollments.all()
-    
-    # Get all schedules related to the student's enrolled classes
-    schedules = Schedule.objects.filter(clazz__enrollments__student=student).distinct()
-
-    return render(request, 'dashboard/student_schedule.html', {'student': student, 'schedules': schedules})
 
 @login_required
 def student_pending_requests_view(request):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
     
@@ -1024,8 +875,8 @@ def student_pending_requests_view(request):
 @login_required
 def student_achievements_view(request):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
     
@@ -1292,7 +1143,7 @@ def delete_enrollment_view(request, pk):
 @user_passes_test(is_staff_user, login_url="accounts:login")
 def manage_staff_view(request):
     query = request.GET.get('q')
-    staff_members = Staff.objects.all()
+    staff_members = Admin.objects.all()
 
     if query:
         staff_members = staff_members.filter(
@@ -1319,7 +1170,7 @@ def add_staff_view(request):
 @login_required
 @user_passes_test(is_staff_user, login_url="accounts:login")
 def edit_staff_view(request, pk):
-    staff_member = get_object_or_404(Staff, pk=pk)
+    staff_member = get_object_or_404(Admin, pk=pk)
     if request.method == 'POST':
         form = StaffForm(request.POST, instance=staff_member)
         if form.is_valid():
@@ -1333,7 +1184,7 @@ def edit_staff_view(request, pk):
 @login_required
 @user_passes_test(is_staff_user, login_url="accounts:login")
 def delete_staff_view(request, pk):
-    staff_member = get_object_or_404(Staff, pk=pk)
+    staff_member = get_object_or_404(Admin, pk=pk)
     staff_member.delete()
     messages.success(request, "Staff member deleted successfully!")
     return redirect('dashboard:manage_staff')
@@ -1454,8 +1305,9 @@ def take_attendance_view(request, class_pk):
             'status': attendance.status if attendance else None
         })
         
-    base_template = 'dashboard/teacher_base_dashboard.html' if hasattr(request.user, 'teacher') else 'dashboard/base_dashboard.html'
-    dashboard_url = 'dashboard:teacher_dashboard' if hasattr(request.user, 'teacher') else 'dashboard:dashboard'
+    is_teacher = hasattr(request.user, 'person') and request.user.person.role == 'teacher'
+    base_template = 'dashboard/teacher_base_dashboard.html' if is_teacher else 'dashboard/base_dashboard.html'
+    dashboard_url = 'dashboard:teacher_dashboard' if is_teacher else 'dashboard:dashboard'
         
     return render(request, 'dashboard/take_attendance.html', {
         'clazz': clazz,
@@ -1489,8 +1341,9 @@ def enter_grades_view(request, class_pk):
         messages.success(request, f"Grades updated for {clazz.class_name}")
         return redirect('dashboard:enter_grades', class_pk=class_pk)
 
-    base_template = 'dashboard/teacher_base_dashboard.html' if hasattr(request.user, 'teacher') else 'dashboard/base_dashboard.html'
-    dashboard_url = 'dashboard:teacher_dashboard' if hasattr(request.user, 'teacher') else 'dashboard:dashboard'
+    is_teacher = hasattr(request.user, 'person') and request.user.person.role == 'teacher'
+    base_template = 'dashboard/teacher_base_dashboard.html' if is_teacher else 'dashboard/base_dashboard.html'
+    dashboard_url = 'dashboard:teacher_dashboard' if is_teacher else 'dashboard:dashboard'
 
     return render(request, 'dashboard/enter_grades.html', {
         'clazz': clazz,
@@ -1501,11 +1354,13 @@ def enter_grades_view(request, class_pk):
 
 @login_required
 def teacher_class_detail_view(request, class_pk):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except:
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
     
-    clazz = get_object_or_404(Clazz, pk=class_pk, teacher=request.user.teacher)
+    clazz = get_object_or_404(Clazz, pk=class_pk, teacher=teacher)
     
     # Handle forms
     if request.method == 'POST':
@@ -1558,7 +1413,10 @@ def teacher_class_detail_view(request, class_pk):
 
 @login_required
 def delete_material_view(request, pk):
-    material = get_object_or_404(Material, pk=pk, clazz__teacher=request.user.teacher)
+    try:
+        teacher = request.user.teacher_profile
+    except: return redirect('home')
+    material = get_object_or_404(Material, pk=pk, clazz__teacher=teacher)
     class_pk = material.clazz.pk
     material.delete()
     messages.success(request, "Material deleted.")
@@ -1566,7 +1424,10 @@ def delete_material_view(request, pk):
 
 @login_required
 def delete_announcement_view(request, pk):
-    announcement = get_object_or_404(Announcement, pk=pk, clazz__teacher=request.user.teacher)
+    try:
+        teacher = request.user.teacher_profile
+    except: return redirect('home')
+    announcement = get_object_or_404(Announcement, pk=pk, clazz__teacher=teacher)
     class_pk = announcement.clazz.pk
     announcement.delete()
     messages.success(request, "Announcement deleted.")
@@ -1574,7 +1435,10 @@ def delete_announcement_view(request, pk):
 
 @login_required
 def delete_assignment_view(request, pk):
-    assignment = get_object_or_404(Assignment, pk=pk, clazz__teacher=request.user.teacher)
+    try:
+        teacher = request.user.teacher_profile
+    except: return redirect('home')
+    assignment = get_object_or_404(Assignment, pk=pk, clazz__teacher=teacher)
     class_pk = assignment.clazz.pk
     assignment.delete()
     messages.success(request, "Assignment deleted.")
@@ -1582,10 +1446,12 @@ def delete_assignment_view(request, pk):
 
 @login_required
 def teacher_student_detail_view(request, class_pk, student_pk):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except:
         return redirect('home')
         
-    enrollment = get_object_or_404(Enrollment, clazz__pk=class_pk, student__pk=student_pk, clazz__teacher=request.user.teacher)
+    enrollment = get_object_or_404(Enrollment, clazz__pk=class_pk, student__pk=student_pk, clazz__teacher=teacher)
     student = enrollment.student
     clazz = enrollment.clazz
     
@@ -1624,11 +1490,13 @@ def teacher_student_detail_view(request, class_pk, student_pk):
 
 @login_required
 def teacher_assignment_submissions_view(request, assignment_pk):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except:
         messages.error(request, "Access denied. Teachers only.")
         return redirect('home')
 
-    assignment = get_object_or_404(Assignment, pk=assignment_pk, clazz__teacher=request.user.teacher)
+    assignment = get_object_or_404(Assignment, pk=assignment_pk, clazz__teacher=teacher)
     
     # Get all students enrolled in the class
     enrollments = Enrollment.objects.filter(clazz=assignment.clazz, status='approved').select_related('student')
@@ -1667,8 +1535,8 @@ def teacher_assignment_submissions_view(request, assignment_pk):
 @login_required
 def student_submit_assignment_view(request, assignment_pk):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
         
@@ -1704,8 +1572,8 @@ def student_submit_assignment_view(request, assignment_pk):
 @login_required
 def student_class_detail_view(request, class_pk):
     try:
-        student = request.user.student
-    except Student.DoesNotExist:
+        student = request.user.student_profile
+    except (AttributeError, Student.DoesNotExist):
         messages.error(request, "You are not registered as a student.")
         return redirect('home')
         
@@ -1729,10 +1597,12 @@ def student_class_detail_view(request, class_pk):
 
 @login_required
 def teacher_qr_generate_view(request):
-    if not hasattr(request.user, 'teacher'):
+    try:
+        teacher = request.user.teacher_profile
+    except:
         return redirect('home')
     
-    teacher = request.user.teacher
+    teacher = teacher
     classes = Clazz.objects.filter(teacher=teacher)
     today = datetime.date.today()
     
@@ -1799,13 +1669,13 @@ def teacher_qr_generate_view(request):
 
 @login_required
 def stop_qr_session_view(request, session_id):
-    if not hasattr(request.user, 'teacher'):
+    if not hasattr(request.user, 'teacher_profile'):
         return redirect('home')
         
     session = get_object_or_404(AttendanceSession, pk=session_id)
     
     # Security check: Ensure session belongs to teacher's class
-    if session.clazz.teacher != request.user.teacher:
+    if session.clazz.teacher != request.user.teacher_profile:
         messages.error(request, "Unauthorized action.")
         return redirect('dashboard:teacher_qr')
         
@@ -1843,13 +1713,13 @@ def stop_qr_session_view(request, session_id):
     
 @login_required
 def student_qr_scan_view(request, token):
-    if not hasattr(request.user, 'student'):
+    if not hasattr(request.user, 'student_profile'):
         return render(request, 'dashboard/student_qr_success.html', {
             'success': False,
             'error_message': "Access denied. Students only."
         })
 
-    student = request.user.student
+    student = request.user.student_profile
     
     # Find Session
     try:
@@ -1903,10 +1773,10 @@ def student_qr_scan_view(request, token):
 
 @login_required
 def teacher_schedule_view(request):
-    if not hasattr(request.user, 'teacher'):
+    if not hasattr(request.user, 'teacher_profile'):
         return redirect('home')
         
-    teacher = request.user.teacher
+    teacher = request.user.teacher_profile
     
     # Get params
     today = datetime.date.today()
@@ -1930,7 +1800,7 @@ def teacher_schedule_view(request):
     current_month_name = calendar.month_name[month]
     
     # Get Classes
-    classes = Clazz.objects.filter(teacher=teacher).select_related('schedule')
+    classes = Clazz.objects.filter(teacher=teacher)
     
     # Build Calendar
     cal = calendar.Calendar(firstweekday=0) # 0 = Monday
@@ -1952,18 +1822,13 @@ def teacher_schedule_view(request):
                 for clazz in classes:
                     # Check date range
                     if clazz.start_date <= current_date <= clazz.end_date:
-                        try:
-                            if hasattr(clazz, 'schedule'):
-                                schedule = clazz.schedule
-                                # Check day of week (string "Monday, Wednesday")
-                                if day_name in schedule.day_of_week:
-                                    day_data['events'].append({
-                                        'time': f"{schedule.start_time.strftime('%H:%M')} - {schedule.end_time.strftime('%H:%M')}",
-                                        'class_name': clazz.class_name,
-                                        'room': clazz.room
-                                    })
-                        except Schedule.DoesNotExist:
-                            pass
+                        # Schedule is now embedded in Clazz
+                        if clazz.day_of_week and day_name in clazz.day_of_week:
+                            day_data['events'].append({
+                                'time': f"{clazz.start_time.strftime('%H:%M') if clazz.start_time else 'TBA'} - {clazz.end_time.strftime('%H:%M') if clazz.end_time else 'TBA'}",
+                                'class_name': clazz.class_name,
+                                'room': clazz.room
+                            })
                             
             week_data.append(day_data)
         calendar_data.append(week_data)
@@ -1980,10 +1845,10 @@ def teacher_schedule_view(request):
 
 @login_required
 def student_schedule_view(request):
-    if not hasattr(request.user, 'student'):
+    if not hasattr(request.user, 'student_profile'):
         return redirect('home')
         
-    student = request.user.student
+    student = request.user.student_profile
     
     # Get params
     today = datetime.date.today()
@@ -2007,7 +1872,7 @@ def student_schedule_view(request):
     current_month_name = calendar.month_name[month]
     
     # Get Enrolled Classes
-    enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz', 'clazz__schedule')
+    enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz')
     classes = [e.clazz for e in enrollments]
     
     # Build Calendar
@@ -2029,17 +1894,13 @@ def student_schedule_view(request):
                 
                 for clazz in classes:
                     if clazz.start_date <= current_date <= clazz.end_date:
-                        try:
-                            if hasattr(clazz, 'schedule'):
-                                schedule = clazz.schedule
-                                if day_name in schedule.day_of_week:
-                                    day_data['events'].append({
-                                        'time': f"{schedule.start_time.strftime('%H:%M')} - {schedule.end_time.strftime('%H:%M')}",
-                                        'class_name': clazz.class_name,
-                                        'room': clazz.room
-                                    })
-                        except Schedule.DoesNotExist:
-                            pass
+                        # Schedule is now embedded in Clazz
+                        if clazz.day_of_week and day_name in clazz.day_of_week:
+                            day_data['events'].append({
+                                'time': f"{clazz.start_time.strftime('%H:%M') if clazz.start_time else 'TBA'} - {clazz.end_time.strftime('%H:%M') if clazz.end_time else 'TBA'}",
+                                'class_name': clazz.class_name,
+                                'room': clazz.room
+                            })
                             
             week_data.append(day_data)
         calendar_data.append(week_data)

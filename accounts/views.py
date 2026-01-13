@@ -6,13 +6,15 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.conf import settings
 from django.db import transaction
 from .forms import SimpleSignUpForm
-from core.models import Student, Teacher
+from core.models import Teacher, Student
 
 def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('dashboard:admin_dashboard')
-        elif hasattr(request.user, 'teacher'):
+        
+        is_teacher = hasattr(request.user, 'teacher_profile')
+        if is_teacher:
             return redirect('dashboard:teacher_dashboard')
         else:
             return redirect('dashboard:student_dashboard')
@@ -27,7 +29,6 @@ def login_view(request):
             login(request, user)
             messages.success(request, f"Welcome back, {user.username}!")
             
-            # Handle 'next' redirect
             redirect_to = request.POST.get('next') or next_url
             if redirect_to and url_has_allowed_host_and_scheme(
                 url=redirect_to, 
@@ -38,7 +39,9 @@ def login_view(request):
             
             if user.is_staff:
                 return redirect('dashboard:admin_dashboard')
-            elif hasattr(user, 'teacher'):
+            
+            is_teacher = hasattr(user, 'teacher_profile')
+            if is_teacher:
                 return redirect('dashboard:teacher_dashboard')
             else:
                 return redirect('dashboard:student_dashboard')
@@ -61,29 +64,25 @@ def signup_view(request):
             try:
                 with transaction.atomic():
                     user = form.save()
-                    role = form.cleaned_data.get('role')
+                    role = form.cleaned_data.get('role', 'student')
+                    
+                    common_data = {
+                        'user': user,
+                        'full_name': form.cleaned_data['full_name'],
+                        'dob': form.cleaned_data['dob'],
+                        'phone_number': form.cleaned_data['phone_number'],
+                        'email': form.cleaned_data['email'],
+                        'address': form.cleaned_data['address']
+                    }
                     
                     if role == 'teacher':
-                        # Create Teacher profile
                         Teacher.objects.create(
-                            user=user,
-                            full_name=form.cleaned_data['full_name'],
-                            dob=form.cleaned_data['dob'],
-                            phone_number=form.cleaned_data['phone_number'],
-                            email=form.cleaned_data['email'],
-                            address=form.cleaned_data['address'],
+                            **common_data,
                             qualification=form.cleaned_data.get('qualification', '')
                         )
                     else:
-                        # Create Student profile
-                        Student.objects.create(
-                            user=user,
-                            full_name=form.cleaned_data['full_name'],
-                            dob=form.cleaned_data['dob'],
-                            phone_number=form.cleaned_data['phone_number'],
-                            email=form.cleaned_data['email'],
-                            address=form.cleaned_data['address']
-                        )
+                        Student.objects.create(**common_data)
+
                     login(request, user)
                     messages.success(request, "Account created successfully!")
                     if role == 'teacher':
@@ -91,7 +90,6 @@ def signup_view(request):
                     else:
                         return redirect('dashboard:student_dashboard')
             except Exception as e:
-                # Log the specific error for debugging if needed
                 print(f"Signup Error: {e}") 
                 messages.error(request, "An error occurred during signup. Please ensure your information is correct and try again.")
     else:
