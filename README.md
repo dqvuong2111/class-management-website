@@ -151,7 +151,17 @@ Teachers can generate QR codes for their classes. Students scan the QR code on t
 
 ### Requirements
 
-- Both teacher and student must be connected to the same network (or internet)
+- **Run the server with your PC's IP address** (not `127.0.0.1`):
+  ```bash
+  # Find your IP address
+  ipconfig    # Windows
+  
+  # Run the server with your IP
+  python manage.py runserver 0.0.0.0:8000
+  ```
+  Then access the app at `http://<your-ip>:8000` (e.g., `http://192.168.1.100:8000`)
+
+- Both teacher and student devices must be on the same network
 - Student must be enrolled in the class
 - QR sessions are valid for that day only
 
