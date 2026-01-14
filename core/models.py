@@ -4,11 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-# ============================================
-# ROLE-SPECIFIC MODELS (3 Separate Tables)
-# ============================================
-
-# 1. Admin (Staff/Administrator)
+# Role-Specific Models
 class Admin(models.Model):
     admin_id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='admin_profile')
@@ -28,7 +24,7 @@ class Admin(models.Model):
     def __str__(self):
         return f"{self.full_name} (Admin)"
 
-# 2. Teacher
+
 class Teacher(models.Model):
     teacher_id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='teacher_profile')
@@ -48,7 +44,7 @@ class Teacher(models.Model):
     def __str__(self):
         return f"{self.full_name} (Teacher)"
 
-# 3. Student
+
 class Student(models.Model):
     student_id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='student_profile')
@@ -67,11 +63,7 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.full_name} (Student)"
 
-# ============================================
-# OTHER MODELS
-# ============================================
-
-# 4. ClassType
+# Other Models
 class ClassType(models.Model):
     type_id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=10, unique=True, verbose_name="Class Type Code")
@@ -82,7 +74,7 @@ class ClassType(models.Model):
     def __str__(self):
         return self.code
 
-# 5. Clazz (Merged with Schedule)
+
 class Clazz(models.Model):
     class_id = models.AutoField(primary_key=True)
     class_name = models.CharField(max_length=100, verbose_name="Class Name")
@@ -111,7 +103,7 @@ class Clazz(models.Model):
     def __str__(self):
         return f"{self.class_name} ({self.class_id})"
 
-# 6. Enrollment
+
 class Enrollment(models.Model):
     enrollment_id = models.AutoField(primary_key=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="enrollments", verbose_name="Student")
@@ -138,7 +130,7 @@ class Enrollment(models.Model):
     def __str__(self):
         return f"{self.student.full_name} enrolled in {self.clazz.class_name}"
 
-# 7. Attendance
+
 class Attendance(models.Model):
     attendance_id = models.AutoField(primary_key=True)
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name="attendances", verbose_name="Enrollment")
@@ -155,7 +147,7 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.enrollment.student.full_name} - {self.date} : {self.status}"
 
-# 8. AttendanceSession
+
 class AttendanceSession(models.Model):
     session_id = models.AutoField(primary_key=True)
     clazz = models.ForeignKey(Clazz, on_delete=models.CASCADE, related_name="attendance_sessions", verbose_name="Class")
@@ -168,7 +160,7 @@ class AttendanceSession(models.Model):
     def __str__(self):
         return f"QR Session for {self.clazz.class_name} on {self.date}"
 
-# 9. Feedback
+
 class Feedback(models.Model):
     feedback_id = models.AutoField(primary_key=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="feedbacks", verbose_name="Student")
@@ -192,7 +184,7 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback by {self.student.full_name} for {self.clazz.class_name}"
 
-# 10. Message (Internal)
+
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages", verbose_name="Sender")
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages", verbose_name="Recipient")
@@ -207,7 +199,7 @@ class Message(models.Model):
     def __str__(self):
         return f"From {self.sender.username} to {self.recipient.username}: {self.subject}"
 
-# 11. Material
+
 class Material(models.Model):
     title = models.CharField(max_length=255, verbose_name="Title")
     file = models.FileField(upload_to='class_materials/', verbose_name="File")
@@ -217,7 +209,7 @@ class Material(models.Model):
     def __str__(self):
         return f"{self.title} ({self.clazz.class_name})"
 
-# 12. Announcement
+
 class Announcement(models.Model):
     title = models.CharField(max_length=255, verbose_name="Title")
     content = models.TextField(verbose_name="Content")
@@ -227,7 +219,7 @@ class Announcement(models.Model):
     def __str__(self):
         return f"{self.title} ({self.clazz.class_name})"
 
-# 13. Assignment
+
 class Assignment(models.Model):
     title = models.CharField(max_length=255, verbose_name="Title")
     description = models.TextField(verbose_name="Description")
@@ -238,7 +230,7 @@ class Assignment(models.Model):
     def __str__(self):
         return f"{self.title} ({self.clazz.class_name})"
 
-# 14. AssignmentSubmission
+
 class AssignmentSubmission(models.Model):
     assignment = models.ForeignKey(Assignment, related_name='submissions', on_delete=models.CASCADE, verbose_name="Assignment")
     student = models.ForeignKey(Student, related_name='submissions', on_delete=models.CASCADE, verbose_name="Student")
@@ -255,7 +247,7 @@ class AssignmentSubmission(models.Model):
     def __str__(self):
         return f"{self.student.full_name} - {self.assignment.title}"
 
-# 15. ContentReadStatus (Merged Read Status)
+
 class ContentReadStatus(models.Model):
     CONTENT_TYPES = [
         ('announcement', 'Announcement'),

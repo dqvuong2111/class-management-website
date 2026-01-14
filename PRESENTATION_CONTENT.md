@@ -7,87 +7,97 @@
 
 **EduManage - Class Management System**
 
-A web-based platform for managing educational institutions with class scheduling, student enrollment, QR attendance tracking, and grade management.
+A website to manage schools and training centers. It helps with class scheduling, student sign-ups, attendance using QR codes, and managing grades.
 
 | Member Name | Student ID | Contribution |
 |-------------|------------|--------------|
-|             |            |              |
-|             |            |              |
-|             |            |              |
+|             |            | Database Design, Frontend Coding, Testing |
+|             |            | Backend Coding, Database Design, Complete Source Code |
 
 ---
 
 ## Slide 2: Problem Introduction
 
 ### Who needs this system?
-- Educational training centers and language schools
-- Tutoring services and coaching facilities
-- Universities and colleges managing multiple classes
+- Training centers and language schools
+- Tutoring services
+- Universities and colleges with many classes
 
 ### Problems Solved
 | Problem | Solution |
 |---------|----------|
-| Manual attendance tracking | QR code scanning with passcode verification |
-| Scattered student records | Centralized database with role-based access |
-| Paper-based grade management | Digital grading system with 6 components |
-| Poor communication | Built-in messaging and announcements |
-| Enrollment chaos | Request → Approve → Payment workflow |
+| Taking attendance by hand | QR code scanning with 4-digit code |
+| Student data in many places | One database for all data |
+| Paper-based grades | Digital grading with 6 scores |
+| Hard to communicate | Built-in messages and notices |
+| Messy sign-up process | Request → Approve → Pay steps |
 
 ---
 
 ## Slide 3: Actors & Use Cases
 
-| Actor | Description | Key Use Cases |
-|-------|-------------|---------------|
-| **Admin** | System administrator | Manage users, approve enrollments, configure classes, view statistics |
-| **Teacher** | Assigned instructor | Create assignments, upload materials, generate QR attendance, enter grades |
-| **Student** | Class participant | Browse courses, request enrollment, submit assignments, scan QR attendance, give feedback |
+| Actor | What they do | Main actions |
+|-------|--------------|--------------|
+| **Admin** | Runs the system | Add/edit users, approve sign-ups, set up classes, see reports |
+| **Teacher** | Teaches classes | Make assignments, add files, create QR attendance, give grades |
+| **Student** | Takes classes | Look at courses, ask to join, send homework, scan QR, give ratings |
 
-### Use Case Diagram (Main Flows)
-- **Admin**: CRUD Teachers, CRUD Students, CRUD Classes, Approve Enrollments
-- **Teacher**: Manage Class Content, Take Attendance, Grade Assignments
-- **Student**: Enroll in Class, Submit Assignment, Mark Attendance, View Grades
-
----
-
-## Slide 4: Data Types Managed
-
-| Data Category | Tables | Description |
-|---------------|--------|-------------|
-| **Users** | auth_user, Admin, Teacher, Student | Authentication and role-specific profiles |
-| **Classes** | ClassType, Clazz | Course categories and class instances |
-| **Enrollment** | Enrollment | Student-class relationships with grades |
-| **Attendance** | Attendance, AttendanceSession | Daily records and QR session management |
-| **Content** | Material, Announcement, Assignment | Learning resources and class updates |
-| **Interaction** | Feedback, Message, AssignmentSubmission | User communication and submissions |
+### Main Actions
+- **Admin**: Add/Edit/Delete Teachers, Students, Classes; Approve Sign-ups
+- **Teacher**: Manage Class Content, Take Attendance, Grade Work
+- **Student**: Join Class, Submit Work, Mark Attendance, See Grades
 
 ---
 
-## Slide 5: Entity-Relationship Diagram
+## Slide 4: Types of Data We Store
 
-### Key Relationships
+| Data Type | What it is | Where we store it |
+|-----------|------------|-------------------|
+| **PDF Files** | Homework submissions, learning materials | Material.file, AssignmentSubmission.file |
+| **Images** | Class photos, user avatars | Clazz.image |
+| **Text (Short)** | Names, emails, titles | full_name, email, class_name |
+| **Text (Long)** | Descriptions, comments, messages | description, comment, body |
+| **Numbers (Int)** | IDs, scores (1-10) | admin_id, teacher_rate |
+| **Numbers (Decimal)** | Prices, grades | price (VND), test scores |
+| **Dates** | Birthdays, class dates | dob, start_date, end_date |
+| **Time** | Class schedule | start_time, end_time |
+| **Yes/No** | Status flags | is_paid, is_read, is_active |
+| **Choice** | Limited options | status ('pending', 'approved', 'rejected') |
 
-```
-User (1) ──── (1) Admin/Teacher/Student    [One user has one role profile]
-Teacher (1) ──── (N) Clazz                 [One teacher teaches many classes]
-Student (1) ──── (N) Enrollment            [One student enrolls in many classes]
-Clazz (1) ──── (N) Enrollment              [One class has many enrollments]
-Enrollment (1) ──── (N) Attendance         [One enrollment has many attendance records]
-Clazz (1) ──── (N) Assignment              [One class has many assignments]
-Assignment (1) ──── (N) AssignmentSubmission [One assignment has many submissions]
-Student (1) ──── (N) Feedback              [One student gives feedback to many classes]
-```
+---
 
-### ERD Visual
-- 15 entities with proper 1:1, 1:N relationships
-- Normalized to 3NF (Third Normal Form)
-- Separate tables for each role (Admin, Teacher, Student)
+## Slide 5: ERD (Entity Relationship Diagram)
+
+### Relationship Summary
+
+| From | Relationship | To | Type |
+|------|--------------|------|------|
+| User | has_profile (XOR) | Admin/Teacher/Student | 1:1 |
+| ClassType | categorizes | Clazz | 1:N |
+| Teacher | teaches | Clazz | 1:N |
+| Student | enrolls_in | Enrollment | 1:N |
+| Clazz | has | Enrollment | 1:N |
+| Enrollment | has | Attendance | 1:N |
+| Clazz | has | AttendanceSession | 1:N |
+| Clazz | has | Material, Announcement | 1:N |
+| Clazz | contains | Assignment | 1:N |
+| Assignment | receives | AssignmentSubmission | 1:N |
+| Student | submits | AssignmentSubmission | 1:N |
+| Student | rates | Feedback | 1:N |
+| Clazz | about | Feedback | 1:N |
+| User | sends/receives | Message | 1:N |
+| Student | has | ContentReadStatus | 1:N |
 
 ---
 
 ## Slide 6: Relational Schema (15 Tables)
 
-### Role Tables (Separated for 3NF)
+### User Tables (Disjoint Specialization)
+
+**User (Django Built-in)**
+```
+User(id PK, username, password, email, first_name, last_name, is_staff, is_active, date_joined)
+```
 
 **Admin**
 ```
@@ -104,7 +114,7 @@ Teacher(teacher_id PK, user_id FK→User, full_name, dob, phone_number, email, a
 Student(student_id PK, user_id FK→User, full_name, dob, phone_number, email, address, created_at, updated_at)
 ```
 
-### Core Tables
+### Class Tables
 
 **ClassType**
 ```
@@ -113,12 +123,16 @@ ClassType(type_id PK, code UNIQUE, description, created_at, updated_at)
 
 **Clazz**
 ```
-Clazz(class_id PK, class_name, class_type_id FK→ClassType, teacher_id FK→Teacher, staff_id FK→Admin, start_date, end_date, price, room, image, day_of_week, start_time, end_time, created_at, updated_at)
+Clazz(class_id PK, class_name, class_type_id FK→ClassType, teacher_id FK→Teacher, 
+      start_date, end_date, price, room, image, day_of_week, start_time, end_time, created_at, updated_at)
 ```
+
+### Enrollment & Attendance Tables
 
 **Enrollment**
 ```
-Enrollment(enrollment_id PK, student_id FK→Student, clazz_id FK→Clazz, enrollment_date, status, is_paid, minitest1, minitest2, minitest3, minitest4, midterm, final_test, created_at, updated_at)
+Enrollment(enrollment_id PK, student_id FK→Student, clazz_id FK→Clazz, enrollment_date, status, is_paid, 
+           minitest1, minitest2, minitest3, minitest4, midterm, final_test, created_at, updated_at)
 UNIQUE(student_id, clazz_id)
 ```
 
@@ -151,7 +165,8 @@ Assignment(id PK, title, description, due_date, clazz_id FK→Clazz, created_at)
 
 **AssignmentSubmission**
 ```
-AssignmentSubmission(id PK, assignment_id FK→Assignment, student_id FK→Student, submission_file, submitted_at, grade, feedback)
+AssignmentSubmission(id PK, assignment_id FK→Assignment, student_id FK→Student, 
+                     submission_file, submitted_at, grade, feedback)
 UNIQUE(assignment_id, student_id)
 ```
 
@@ -159,7 +174,8 @@ UNIQUE(assignment_id, student_id)
 
 **Feedback**
 ```
-Feedback(feedback_id PK, student_id FK→Student, clazz_id FK→Clazz, teacher_rate, class_rate, comment, created_at, updated_at)
+Feedback(feedback_id PK, student_id FK→Student, clazz_id FK→Clazz, 
+         teacher_rate, class_rate, comment, created_at, updated_at)
 ```
 
 **Message**
@@ -175,54 +191,58 @@ UNIQUE(student_id, content_type, content_id)
 
 ---
 
-## Slide 7: Data Types & Constraints
+## Slide 7: Data Types & Rules
 
-| Field Type | SQL Type | Example Fields |
-|------------|----------|----------------|
-| Primary Key | INT IDENTITY(1,1) | admin_id, teacher_id, student_id |
-| Foreign Key | INT with FK constraint | user_id, teacher_id, clazz_id |
-| String | NVARCHAR(n) | full_name, email, class_name |
-| Text | NVARCHAR(MAX) | description, comment, body |
-| Date/Time | DATE, TIME, DATETIME | dob, start_date, created_at |
-| Decimal | DECIMAL(10,2), DECIMAL(3,2) | price, teacher_rate |
-| Float | FLOAT | minitest1, grade |
-| Boolean | BIT | is_paid, is_read, is_active |
+| Type | SQL Type | Examples |
+|------|----------|----------|
+| ID (Primary Key) | INT IDENTITY(1,1) | admin_id, teacher_id |
+| Link (Foreign Key) | INT with FK | user_id, clazz_id |
+| Short Text | NVARCHAR(n) | full_name, email |
+| Long Text | NVARCHAR(MAX) | description, comment |
+| Date/Time | DATE, TIME, DATETIME | dob, start_date |
+| Money | DECIMAL(10,2) | price |
+| Score | FLOAT, DECIMAL(3,2) | test1, teacher_score |
+| Yes/No | BIT | is_paid, is_read |
 
-### Key Constraints
+### Constraints
 
-| Constraint | Table | Description |
-|------------|-------|-------------|
-| UNIQUE | Enrollment(student_id, clazz_id) | Prevent duplicate enrollments |
-| CHECK | Enrollment.status | IN ('pending', 'approved', 'rejected') |
-| CHECK | Attendance.status | IN ('Present', 'Absent', 'Late') |
-| NOT NULL | Required fields | full_name, email, class_name, etc. |
+| Table | Constraint | Rule |
+|-------|------------|------|
+| core_enrollment | Status | Only 'pending', 'approved', 'rejected' |
+| core_attendance | Status | Only 'Present', 'Absent', 'Excused' |
+| core_feedback | Rating | Teacher & class ratings must be 1-10 |
+| core_enrollment | Grades | All 6 test scores must be 0-10 |
+| core_clazz | Price | Must be >= 0 |
+| core_clazz | Dates | End date >= start date |
+| core_clazz | Times | End time > start time |
+| core_attendancesession | Passcode | Must be exactly 4 digits |
 
 ---
 
 ## Slide 8: Project Results
 
-### Features Implemented
-- ✅ 3 Role-Based Portals (Admin, Teacher, Student)
-- ✅ 15 Database Tables with proper constraints
-- ✅ Normalized to 3NF (Third Normal Form)
-- ✅ QR Attendance with 4-digit passcode verification
-- ✅ Assignment creation, submission, and grading
-- ✅ Internal messaging system
-- ✅ Student feedback and rating system
+### What We Built
+- ✅ 3 Portals (Admin, Teacher, Student)
+- ✅ 15 Database Tables with rules
+- ✅ Follows 3NF (no repeated data)
+- ✅ QR Attendance with 4-digit code
+- ✅ Homework: create, submit, grade
+- ✅ Message system
+- ✅ Student rating system
 
-### Technology Stack
-| Component | Technology |
-|-----------|------------|
+### Tools Used
+| Part | Tool |
+|------|------|
 | Backend | Django 5.2 (Python) |
 | Database | MS SQL Server |
 | Frontend | HTML5, CSS, JavaScript |
-| ORM | Django ORM with mssql-django |
+| Database Link | Django ORM + mssql-django |
 
 ### Demo
-Live demonstration of:
-1. Admin creating a class and approving enrollments
-2. Teacher generating QR attendance
-3. Student scanning QR and marking attendance
+Live show:
+1. Admin makes a class and approves sign-ups
+2. Teacher makes QR for attendance
+3. Student scans QR to mark attendance
 
 ---
 

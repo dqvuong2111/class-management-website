@@ -6,8 +6,8 @@ from django import forms
 import datetime
 import calendar
 import random
-from django.urls import reverse # Added for generating URLs in views
-import uuid # Added uuid import
+from django.urls import reverse
+import uuid
 from core.models import (
     Clazz, Admin, Teacher, Student, Enrollment, ClassType, Attendance,
     Material, Announcement, Assignment, AssignmentSubmission, Feedback, Message,
@@ -46,8 +46,6 @@ def teacher_feedback_list_view(request):
         return redirect('home')
     
     feedbacks = Feedback.objects.filter(clazz__teacher=teacher).select_related('clazz').order_by('-created_at')
-    
-    # Calculate averages
     avg_teacher = feedbacks.aggregate(Avg('teacher_rate'))['teacher_rate__avg']
     avg_class = feedbacks.aggregate(Avg('class_rate'))['class_rate__avg']
     
@@ -68,8 +66,7 @@ def student_give_feedback_view(request, class_pk):
     if not Enrollment.objects.filter(student=student, clazz=clazz, status='approved').exists():
         messages.error(request, "You are not enrolled in this class.")
         return redirect('dashboard:student_courses')
-        
-    # Check if already submitted
+
     if Feedback.objects.filter(student=student, clazz=clazz).exists():
         messages.info(request, "You have already submitted feedback for this class.")
         return redirect('dashboard:student_class_detail', class_pk=class_pk)
@@ -92,13 +89,8 @@ def student_give_feedback_view(request, class_pk):
 
 
 def get_display_name(user):
-    """
-    Returns the full name of the user based on their role profile,
-    or their username if no role is found.
-    """
     if not user.is_authenticated:
         return ""
-    
     try:
         if hasattr(user, 'teacher_profile'):
             return user.teacher_profile.full_name
@@ -108,7 +100,6 @@ def get_display_name(user):
             return user.admin_profile.full_name
     except Exception:
         pass
-        
     return user.username
 
 @login_required
@@ -116,8 +107,6 @@ def messages_view(request):
     user = request.user
     from django.contrib.auth.models import User
     
-    # Data structure to hold unique contacts: {user_id: UserObject}
-    # We'll attach 'role_label' and 'class_names' (set) to these objects
     contacts_map = {}
 
     def get_or_create_contact(u):
@@ -127,36 +116,29 @@ def messages_view(request):
             contacts_map[u.pk] = u
         return contacts_map[u.pk]
 
-    # --- 1. Populate from Class Relationships ---
     is_student = hasattr(user, 'student_profile')
     is_teacher = hasattr(user, 'teacher_profile')
 
     if is_student:
-        # User is a Student
         student = user.student_profile
         enrollments = Enrollment.objects.filter(student=student, status='approved').select_related('clazz', 'clazz__teacher', 'clazz__teacher__user')
         
         for enrollment in enrollments:
             clazz = enrollment.clazz
             c_name = clazz.class_name
-            
-            # Add Teacher
             if clazz.teacher and clazz.teacher.user:
                 t_user = clazz.teacher.user
                 contact = get_or_create_contact(t_user)
                 contact.role_label = "Teacher"
                 contact.class_names.add(c_name)
             
-            # Add Classmates
             classmates = Student.objects.filter(enrollments__clazz=clazz, enrollments__status='approved').exclude(pk=student.pk).select_related('user')
             for cm in classmates:
                 if cm.user:
                     contact = get_or_create_contact(cm.user)
                     contact.role_label = "Student"
                     contact.class_names.add(c_name)
-
     elif is_teacher:
-        # User is a Teacher
         teacher = user.teacher_profile
         classes = Clazz.objects.filter(teacher=teacher)
         
