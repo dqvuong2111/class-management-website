@@ -122,6 +122,41 @@ ClassManagementWebsite/
 
 ---
 
+## QR Code Attendance
+
+### Overview
+
+Teachers can generate QR codes for their classes. Students scan the QR code on their phones and enter a 4-digit passcode to mark attendance instantly.
+
+### For Teachers
+
+1. **Login** as a teacher
+2. Navigate to **QR Attendance** from the sidebar or dashboard
+3. **Select a class** from the dropdown
+4. Click **Generate Live QR**
+5. A QR code and 4-digit passcode will appear
+6. **Display the QR code** to students (use Fullscreen mode for projection)
+7. Students scan and enter the passcode to check in
+8. Click **Stop Session** when attendance is complete
+
+> **Note:** Only one active QR session per class per day. Generating a new QR code expires the previous one.
+
+### For Students
+
+1. **Login** on your mobile device
+2. **Scan the QR code** displayed by the teacher using your phone's camera
+3. The QR code opens a verification page in your browser
+4. **Enter the 4-digit passcode** shown on screen
+5. Your attendance is marked as **Present**
+
+### Requirements
+
+- Both teacher and student must be connected to the same network (or internet)
+- Student must be enrolled in the class
+- QR sessions are valid for that day only
+
+---
+
 ## Tech Stack
 
 | Layer     | Technology             |
